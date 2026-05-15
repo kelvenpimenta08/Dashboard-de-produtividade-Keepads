@@ -1,15 +1,7 @@
 {
-  "name": "keepads-dashboard-backend",
+  "name": "keepads-dashboard",
   "version": "1.0.0",
-  "description": "Backend proxy para o Dashboard de Produtividade Keepads",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.18.2"
-  },
+  "description": "Dashboard de Produtividade Keepads",
   "engines": {
     "node": ">=18.0.0"
   }
