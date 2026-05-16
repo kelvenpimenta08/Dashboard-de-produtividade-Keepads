@@ -6,12 +6,7 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
 
-  const DASHBOARD_SECRET = process.env.DASHBOARD_SECRET;
-  const { from, to, secret } = req.body;
-
-  if (!DASHBOARD_SECRET || secret !== DASHBOARD_SECRET) {
-    return res.status(401).json({ error: 'Não autorizado' });
-  }
+  const { from, to } = req.body;
 
   if (!from || !to) {
     return res.status(400).json({ error: 'Parâmetros from e to são obrigatórios' });
