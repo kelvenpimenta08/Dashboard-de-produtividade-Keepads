@@ -3,40 +3,134 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Metodo nao permitido' });
 
   var cuKey = process.env.CLICKUP_API_KEY;
-  var SPACE_ID = '901310794200';
+  if (!cuKey) return res.status(500).json({ error: 'Sem CLICKUP_API_KEY' });
+
+  var body = req.body;
+  var periodo = body.periodo || 'semana';
+  var LIST_ID = '901320419867';
+
+  // Mapeamento exato dos nomes do ClickUp para nomes do dashboard
+  var MAPA = [
+    { chave: 'Marcos Coelho',                    nome: 'Marcos Coelho' },
+    { chave: 'Pedro Augusto de Novaes Barreto',  nome: 'Pedro Augusto' },
+    { chave: 'Tiago Ciribeli',                   nome: 'Tiago Ciribeli' },
+    { chave: 'Alexandre Pires dias',             nome: 'Alexandre Pires' },
+    { chave: 'Kelven Pimenta',                   nome: 'Kelven Pimenta' },
+    { chave: 'Ana Clara Rayol',                  nome: 'Ana Clara Rayol' }
+  ];
+
+  var GESTORES = ['Marcos Coelho','Pedro Augusto','Tiago Ciribeli','Alexandre Pires','Kelven Pimenta','Ana Clara Rayol'];
+
+  function mapNome(fullName) {
+    if (!fullName) return null;
+    for (var i = 0; i < MAPA.length; i++) {
+      if (fullName === MAPA[i].chave) return MAPA[i].nome;
+    }
+    return null;
+  }
+
+  function getRange(periodo) {
+    var now = new Date();
+    var from, to;
+    if (periodo === 'semana') {
+      var day = now.getDay();
+      from = new Date(now); from.setDate(now.getDate() - day); from.setHours(0,0,0,0);
+      to = new Date(from); to.setDate(from.getDate() + 6); to.setHours(23,59,59,999);
+    } else if (periodo === 'mes') {
+      from = new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0);
+      to = new Date(now.getFullYear(), now.getMonth()+1, 0, 23,59,59,999);
+    } else {
+      from = new Date(now.getFullYear(), 0, 1, 0,0,0,0);
+      to = new Date(now.getFullYear(), 11, 31, 23,59,59,999);
+    }
+    return { from: from.getTime(), to: to.getTime() };
+  }
+
+  var hoje = new Date(); hoje.setHours(0,0,0,0);
+  var hojeMs = hoje.getTime();
+  var amanhaMs = hojeMs + 86400000;
+  var range = getRange(periodo);
   var headers = { 'Authorization': cuKey, 'Content-Type': 'application/json' };
 
-  try {
-    var rLists = await fetch('https://api.clickup.com/api/v2/space/' + SPACE_ID + '/list?archived=false', { headers: headers });
-    var dataLists = await rLists.json();
-    var lists = dataLists.lists || [];
+  var resultado = {};
+  GESTORES.forEach(function(g) {
+    resultado[g] = { atrasado:[], venceHoje:[], noPrazo:[], feito:[], totalAtrasado:0, totalVenceHoje:0, totalNoPrazo:0, totalFeito:0 };
+  });
 
-    var debugLists = [];
-    for (var i = 0; i < lists.length; i++) {
-      var l = lists[i];
-      var rTasks = await fetch('https://api.clickup.com/api/v2/list/' + l.id + '/task?include_closed=false&page=0&limit=10', { headers: headers });
-      var dTasks = await rTasks.json();
-      debugLists.push({
-        lista_id: l.id,
-        lista_nome: l.name,
-        total_tarefas: (dTasks.tasks || []).length,
-        exemplo: (dTasks.tasks || []).slice(0,3).map(function(t){
-          return {
-            nome: t.name,
-            due: t.due_date,
-            status: t.status && t.status.status,
-            assignees: (t.assignees||[]).map(function(a){ return a.username; })
-          };
-        })
-      });
+  function addTask(nome, taskInfo, tipo) {
+    if (!resultado[nome]) return;
+    resultado[nome][tipo].push(taskInfo);
+    resultado[nome]['total' + tipo.charAt(0).toUpperCase() + tipo.slice(1)]++;
+  }
+
+  try {
+    // Busca tarefas abertas — todas as páginas
+    var allOpen = [];
+    var page = 0;
+    var hasMore = true;
+    while (hasMore) {
+      var url = 'https://api.clickup.com/api/v2/list/' + LIST_ID + '/task?include_closed=false&page=' + page + '&limit=100';
+      var r = await fetch(url, { headers: headers });
+      var d = await r.json();
+      var tasks = d.tasks || [];
+      allOpen = allOpen.concat(tasks);
+      hasMore = tasks.length === 100;
+      page++;
+      if (page > 20) break;
     }
 
-    return res.status(200).json({
-      total_listas: lists.length,
-      listas: debugLists
+    // Classifica por due date
+    allOpen.forEach(function(task) {
+      var status = task.status && task.status.status ? task.status.status.toLowerCase() : '';
+      if (status === 'feito') return;
+      if (!task.due_date) return;
+
+      var due = parseInt(task.due_date);
+      var tags = (task.tags || []).map(function(t){ return t.name; });
+      var taskInfo = {
+        nome: task.name,
+        tags: tags,
+        dueStr: new Date(due).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
+      };
+
+      var tipo = due < hojeMs ? 'atrasado' : due < amanhaMs ? 'venceHoje' : 'noPrazo';
+
+      (task.assignees || []).forEach(function(a) {
+        var nome = mapNome(a.username || '');
+        if (nome) addTask(nome, taskInfo, tipo);
+      });
     });
+
+    // Busca tarefas FEITAS no período
+    page = 0; hasMore = true;
+    while (hasMore) {
+      var urlDone = 'https://api.clickup.com/api/v2/list/' + LIST_ID + '/task?statuses[]=feito&include_closed=true&date_done_gt=' + range.from + '&date_done_lt=' + range.to + '&page=' + page + '&limit=100';
+      var rDone = await fetch(urlDone, { headers: headers });
+      var dDone = await rDone.json();
+      var tasksDone = dDone.tasks || [];
+
+      tasksDone.forEach(function(task) {
+        var tags = (task.tags || []).map(function(t){ return t.name; });
+        var taskInfo = {
+          nome: task.name,
+          tags: tags,
+          dueStr: task.date_done ? new Date(parseInt(task.date_done)).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : ''
+        };
+        (task.assignees || []).forEach(function(a) {
+          var nome = mapNome(a.username || '');
+          if (nome) addTask(nome, taskInfo, 'feito');
+        });
+      });
+
+      hasMore = tasksDone.length === 100;
+      page++;
+      if (page > 20) break;
+    }
+
+    return res.status(200).json({ gestores: resultado });
 
   } catch(e) {
     return res.status(500).json({ error: e.message });
