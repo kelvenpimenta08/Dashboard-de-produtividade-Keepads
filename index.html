@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Keepads · Painel de Produtividade</title>
+<link rel="icon" href="https://keepads.com.br/logos/header-logo.webp"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1DB886; --green-light:#e8f8f2; --green-mid:#a8dfc8; --green-dark:#0f9b6e;
+  --bg:#f0f5f2; --surface:#fff; --surface2:#f7faf8;
+  --border:#e0ebe5; --border2:#cdddd6;
+  --text:#0d1a14; --text2:#3d5248; --muted:#7a9589; --muted2:#a8bdb5;
+  --red:#e53e3e; --red-bg:#fef2f2;
+  --orange:#dd6b20; --orange-bg:#fff7ed;
+  --yellow:#c08a0e; --yellow-bg:#fffbeb;
+  --purple:#6d48d6; --blue:#2b6cb0;
+  --r:10px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --sh2:0 4px 14px rgba(0,0,0,.09),0 2px 4px rgba(0,0,0,.04);
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:1.5px solid var(--border);padding:0 36px;display:flex;justify-content:space-between;align-items:center;height:66px;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
+.tb-left{display:flex;align-items:center;gap:18px}
+.tb-logo{height:30px}
+.tb-sep{width:1.5px;height:30px;background:var(--border)}
+.tb-badge{background:var(--green-light);color:var(--green-dark);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;letter-spacing:.04em}
+.tb-right{display:flex;align-items:center;gap:12px}
+.tb-info{text-align:right}
+.tb-time{font-size:11px;color:var(--muted);font-weight:500}
+.tb-status{font-size:11px;margin-top:2px;font-weight:600}
+.tb-status.ok{color:var(--green)} .tb-status.err{color:var(--red)} .tb-status.warn{color:var(--orange)}
+
+/* BUTTON */
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--green);border:none;color:#fff;padding:10px 22px;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:.18s;box-shadow:0 2px 10px rgba(29,184,134,.3)}
+.btn:hover{background:var(--green-dark);box-shadow:0 4px 16px rgba(29,184,134,.4);transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn.spin svg{animation:spin .7s linear infinite}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* CONTROLS */
+.ctrl{background:#fff;border-bottom:1.5px solid var(--border);padding:0 36px;display:flex;justify-content:space-between;align-items:center;height:52px}
+.tabs{display:flex;height:100%}
+.tab{display:inline-flex;align-items:center;padding:0 22px;font-family:var(--font);font-size:11px;font-weight:800;letter-spacing:.07em;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;transition:.15s;text-transform:uppercase;height:100%}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab:hover:not(.active){color:var(--text2)}
+.per-wrap{display:flex;align-items:center;gap:7px}
+.per-lbl{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-right:4px}
+.per-btn{padding:6px 15px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);border-radius:20px;transition:.14s}
+.per-btn.active{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 2px 8px rgba(29,184,134,.25)}
+.per-btn:hover:not(.active){border-color:var(--green-mid);color:var(--text2)}
+
+/* INNER */
+.inner{padding:26px 36px}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:.18s}
+.kpi:hover{box-shadow:var(--sh2);transform:translateY(-2px)}
+.kpi-top{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+.kpi-lbl{font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.kpi-val{font-size:34px;font-weight:900;line-height:1;margin-bottom:4px}
+.kpi-sub{font-size:10px;color:var(--muted);font-weight:500}
+
+/* CARDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--sh)}
+.ctit{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--text2);text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* BARS */
+.brow{margin-bottom:13px}
+.btop{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.bname{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:9px;font-weight:600}
+.bval{font-size:20px;font-weight:900}
+.btrack{background:var(--bg);height:5px;border-radius:3px;overflow:hidden}
+.bfill{height:100%;border-radius:3px;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.ava{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;flex-shrink:0}
+
+/* HEALTH */
+.hrow{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.hmeta{flex:1}
+.htop{display:flex;justify-content:space-between;margin-bottom:5px}
+.hname{font-size:12px;color:var(--text2);font-weight:600}
+.hpct{font-size:12px;font-weight:800}
+.htrack{background:var(--bg);height:6px;border-radius:4px;overflow:hidden}
+.hfill{height:100%;border-radius:4px;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.hsub{font-size:10px;color:var(--muted);margin-top:3px;font-weight:500}
+
+/* ALERTS */
+.arow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1.5px solid var(--border)}
+.arow:last-child{border-bottom:none}
+.aname{font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px}
+.asub{font-size:10px;color:var(--muted);font-weight:500}
+.adias{font-size:22px;font-weight:900}
+.badge{font-size:9px;font-weight:800;padding:3px 8px;border-radius:20px}
+.rule{margin-top:14px;padding:12px 14px;background:var(--green-light);border-left:3px solid var(--green);border-radius:0 6px 6px 0;font-size:11px;color:var(--text2);line-height:1.8;font-weight:500}
+
+/* GESTOR SEL */
+.gbtns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.gbtn{padding:8px 16px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);border-radius:8px;transition:.14s;display:flex;align-items:center;gap:7px;box-shadow:var(--sh)}
+.gbtn:hover:not(.active){border-color:var(--green-mid);color:var(--text)}
+
+/* GESTOR HDR */
+.ghdr{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;background:#fff;border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:14px;box-shadow:var(--sh)}
+.ginfo{display:flex;align-items:center;gap:14px}
+.glg{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
+.gnom{font-size:16px;font-weight:800}
+.gcar{font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
+.gkpis{display:flex;gap:28px}
+.gkpi{text-align:center}
+.gkl{font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.gkv{font-size:24px;font-weight:900}
+
+/* TASK LIST */
+.tlist{max-height:390px;overflow-y:auto;padding-right:3px}
+.tlist::-webkit-scrollbar{width:3px}
+.titem{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1.5px solid var(--border)}
+.titem:last-child{border-bottom:none}
+.tnom{font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:7px;font-weight:500}
+.ttags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px}
+.tmeta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.tdias{font-size:12px;font-weight:800}
+.tprio{font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px}
+.sbtns{display:flex;gap:5px}
+.sbtn{padding:4px 10px;font-family:var(--font);font-size:9px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);border-radius:20px;transition:.12s}
+.sbtn.active{background:var(--green);color:#fff;border-color:var(--green)}
+.sbtn:hover:not(.active){border-color:var(--green-mid)}
+.empty{font-size:12px;color:var(--muted);text-align:center;padding:28px;font-weight:500}
+
+/* 4DX */
+.pbox{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px}
+.plbl{font-size:9px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.pval{font-size:12px;color:var(--text2);line-height:1.7;font-weight:500}
+.ltop{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;font-weight:700}
+.pres{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:8px;margin-top:10px;border:1.5px solid}
+.pres.win{background:var(--green-light);border-color:var(--green-mid)}
+.pres.lose{background:var(--red-bg);border-color:#fca5a5}
+.fico{font-size:20px;flex-shrink:0}
+.fst{font-size:12px;font-weight:800}
+.fhi{font-size:10px;color:var(--muted);margin-top:2px;font-weight:500}
+
+/* DONE LIST */
+.dlist{max-height:210px;overflow-y:auto;padding-right:3px}
+.dlist::-webkit-scrollbar{width:3px}
+.ditem{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1.5px solid var(--border);font-size:10px;color:var(--muted);font-weight:500}
+.ditem:last-child{border-bottom:none}
+.dchk{color:var(--green);font-size:11px;flex-shrink:0;margin-top:1px;font-weight:900}
+
+/* FOOTER */
+.footer{background:#fff;border-top:1.5px solid var(--border);padding:14px 36px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--muted);font-weight:500;margin-top:4px}
+.flogo{height:22px}
+.fright{display:flex;align-items:center;gap:16px}
+.fbadge{display:inline-flex;align-items:center;gap:5px;background:var(--green-light);color:var(--green-dark);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
+
+/* RESPONSIVE */
+@media(max-width:980px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}.topbar,.ctrl,.inner,.footer{padding-left:16px;padding-right:16px}}
+@media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr}.topbar{flex-direction:column;height:auto;padding:14px 16px;gap:10px}.ctrl{flex-direction:column;height:auto;padding:10px 16px;gap:8px}.ghdr{flex-direction:column;align-items:flex-start;gap:12px}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-left">
+    <img src="https://keepads.com.br/logos/header-logo.webp" alt="Keepads" class="tb-logo"/>
+    <div class="tb-sep"></div>
+    <span class="tb-badge">Painel de Produtividade</span>
+  </div>
+  <div class="tb-right">
+    <div class="tb-info">
+      <div class="tb-time" id="hdr-time">—</div>
+      <div class="tb-status" id="hdr-status"></div>
+    </div>
+    <button class="btn" id="btn-ref" onclick="doRefresh()">
+      <svg id="ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>
+      Atualizar Agora
+    </button>
+  </div>
+</header>
+
+<!-- CONTROLS -->
+<div class="ctrl">
+  <div class="tabs">
+    <button class="tab active" id="tab-geral"  onclick="setTab('geral')">Resumo Geral</button>
+    <button class="tab"        id="tab-gestor" onclick="setTab('gestor')">Por Gestor</button>
+  </div>
+  <div class="per-wrap">
+    <span class="per-lbl">Período</span>
+    <button class="per-btn active" id="per-semana" onclick="setPer('semana')">Esta Semana</button>
+    <button class="per-btn"        id="per-mes"    onclick="setPer('mes')">Este Mês</button>
+    <button class="per-btn"        id="per-ano"    onclick="setPer('ano')">Este Ano</button>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="inner"><div id="content"></div></div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <img src="https://keepads.com.br/logos/header-logo.webp" alt="Keepads" class="flogo"/>
+  <div class="fright">
+    <span>ClickUp · Lista 901320419867</span>
+    <span class="fbadge">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      4DX + Sistematizador
+    </span>
+    <span id="fdate"></span>
+  </div>
+</footer>
+
+<script>
+const GESTORES=[{name:"Marcos Coelho",ini:"MC"},{name:"Pedro Augusto",ini:"PA"},{name:"Tiago Ciribeli",ini:"TC"},{name:"Alexandre Pires",ini:"AD"},{name:"Ana Clara Rayol",ini:"AC"},{name:"Kelven Pimenta",ini:"KP"}];
+const COR={"Marcos Coelho":"#e53e3e","Pedro Augusto":"#dd6b20","Tiago Ciribeli":"#c08a0e","Alexandre Pires":"#1DB886","Ana Clara Rayol":"#2b6cb0","Kelven Pimenta":"#6d48d6"};
+const CBG={"Marcos Coelho":"#fef2f2","Pedro Augusto":"#fff7ed","Tiago Ciribeli":"#fffbeb","Alexandre Pires":"#e8f8f2","Ana Clara Rayol":"#ebf8ff","Kelven Pimenta":"#f3efff"};
+const TAG={estratégica:{bg:"#f3efff",c:"#6d48d6"},rotina:{bg:"#ebf8ff",c:"#2b6cb0"},específica:{bg:"#fff7ed",c:"#dd6b20"},onboarding:{bg:"#e8f8f2",c:"#1DB886"},cliente:{bg:"#fff0f6",c:"#c0507a"}};
+const PL={semana:"Esta Semana",mes:"Este Mês",ano:"Este Ano"};
+const PD={semana:7,mes:30,ano:365};
+
+let ST={
+  pend:{"Marcos Coelho":58,"Pedro Augusto":25,"Tiago Ciribeli":24,"Alexandre Pires":26,"Ana Clara Rayol":10,"Kelven Pimenta":5},
+  done:{"Marcos Coelho":42,"Pedro Augusto":26,"Tiago Ciribeli":22,"Alexandre Pires":34,"Ana Clara Rayol":12,"Kelven Pimenta":0},
+  alertas:[{c:"Hotel Fazenda St. Robert",g:"Marcos Coelho",n:12,d:5,u:true},{c:"Urbanbox — sem campanha ativa",g:"Pedro Augusto",n:1,d:5,u:true},{c:"St Robert — campanhas Google",g:"Tiago Ciribeli",n:1,d:3,u:true},{c:"Kiwify — cancelar assinatura",g:"Kelven Pimenta",n:1,d:6,u:false}]
+};
+const TP={
+  "Marcos Coelho":[{id:"m1",nome:"Hotel Fazenda — Subir campanha Google: Corpus Christi",cliente:"Hotel Fazenda",d:5,prio:"high",tag:"estratégica"},{id:"m2",nome:"Hotel Fazenda — Subir campanha: Férias de Julho",cliente:"Hotel Fazenda",d:5,prio:"high",tag:"estratégica"},{id:"m3",nome:"Hotel Fazenda — Enviar criativos Corpus Christi (4 pcs)",cliente:"Hotel Fazenda",d:5,prio:"high",tag:"cliente"},{id:"m4",nome:"Drogaria Povão — Números WhatsApp / novas campanhas",cliente:"Drogaria Povão",d:6,prio:"high",tag:"estratégica"},{id:"m5",nome:"Royal Super Você — Revisão estratégica da conta",cliente:"Royal Super Você",d:6,prio:"normal",tag:"estratégica"},{id:"m6",nome:"ASSERJ — Revisão estratégica da conta",cliente:"ASSERJ",d:6,prio:"normal",tag:"estratégica"},{id:"m7",nome:"Doces Vovó Ana — Revisão estratégica",cliente:"Doces Vovó Ana",d:6,prio:"normal",tag:"estratégica"},{id:"m8",nome:"Konnen Academia — Enviar Pix Meta",cliente:"Konnen Academia",d:6,prio:"normal",tag:"rotina"},{id:"m9",nome:"Konnen Academia — Enviar Pix Google",cliente:"Konnen Academia",d:6,prio:"normal",tag:"rotina"},{id:"m10",nome:"CNA Resende — Enviar Boleto R$ 600,00",cliente:"CNA Resende",d:10,prio:"normal",tag:"rotina"},{id:"m11",nome:"Mitsubishi Kettei — Enviar NF para Mônica",cliente:"Mitsubishi",d:0,prio:"normal",tag:"rotina"},{id:"m12",nome:"Mitsubishi Kettei — Enviar Boleto Meta dia 10",cliente:"Mitsubishi",d:0,prio:"normal",tag:"rotina"},{id:"m13",nome:"Perfumaria Povão — Enviar Pix Meta",cliente:"Perf. Povão",d:7,prio:"normal",tag:"rotina"},{id:"m14",nome:"Simone Freitas — Revisão estratégica",cliente:"Simone Freitas",d:6,prio:"normal",tag:"estratégica"},{id:"m15",nome:"Cruzeiro VR — Revisão estratégica",cliente:"Cruzeiro VR",d:6,prio:"normal",tag:"estratégica"}],
+  "Pedro Augusto":[{id:"p1",nome:"Delegar subida das campanhas do Urbanbox",cliente:"Urbanbox",d:5,prio:"urgent",tag:"estratégica"},{id:"p2",nome:"Reunião com Bob sobre Urbanbox",cliente:"Urbanbox",d:6,prio:"high",tag:"estratégica"},{id:"p3",nome:"Urban Box — Revisão estratégica da conta",cliente:"Urban Box",d:1,prio:"normal",tag:"estratégica"},{id:"p4",nome:"Montari Negócios — Revisão estratégica",cliente:"Montari",d:3,prio:"normal",tag:"estratégica"},{id:"p5",nome:"Açougue Boizão — Revisão estratégica",cliente:"Boizão",d:3,prio:"normal",tag:"estratégica"},{id:"p6",nome:"Eko_Cosméticos — Revisão estratégica",cliente:"Eko Cosméticos",d:3,prio:"normal",tag:"estratégica"},{id:"p7",nome:"New Shoes — Revisão estratégica",cliente:"New Shoes",d:3,prio:"normal",tag:"estratégica"},{id:"p8",nome:"Konnen Academia — Dash Controle Financeiro",cliente:"Konnen",d:6,prio:"normal",tag:"onboarding"},{id:"p9",nome:"Konnen Academia — Planilha de Reunião",cliente:"Konnen",d:6,prio:"normal",tag:"onboarding"},{id:"p10",nome:"Pousada Beni — Enviar Pix Meta R$ 1.000",cliente:"Pousada Beni",d:0,prio:"normal",tag:"rotina"},{id:"p11",nome:"New Shoes — Enviar Pix Meta R$ 1.000,00",cliente:"New Shoes",d:3,prio:"normal",tag:"rotina"},{id:"p12",nome:"Occhialeria — Planejar campanha catálogo",cliente:"Occhialeria",d:6,prio:"normal",tag:"estratégica"},{id:"p13",nome:"modacrushstore — Reenvio do checklist",cliente:"modacrushstore",d:1,prio:"normal",tag:"rotina"},{id:"p14",nome:"Óticas Veneza — Checar reunião",cliente:"Óticas Veneza",d:6,prio:"normal",tag:"rotina"},{id:"p15",nome:"Transmargo — Revisão estratégica",cliente:"Transmargo",d:3,prio:"normal",tag:"estratégica"}],
+  "Tiago Ciribeli":[{id:"tc1",nome:"St Robert — Subir novas campanhas Google",cliente:"St Robert",d:3,prio:"high",tag:"específica"},{id:"tc2",nome:"ROYAL — Avaliar orçamentos",cliente:"Royal",d:2,prio:"normal",tag:"rotina"},{id:"tc3",nome:"Fábio Queiroz — Verificar post",cliente:"Fábio Queiroz",d:2,prio:"normal",tag:"rotina"},{id:"tc4",nome:"ASSERJ — Verificar post",cliente:"ASSERJ",d:2,prio:"normal",tag:"rotina"},{id:"tc5",nome:"Revisar orçamento Cliente Meta",cliente:"Geral",d:2,prio:"normal",tag:"rotina"},{id:"tc6",nome:"Revisar orçamento Cliente Google",cliente:"Geral",d:2,prio:"normal",tag:"rotina"},{id:"tc7",nome:"Zamix — Colocar NF Drive",cliente:"Zamix",d:5,prio:"normal",tag:"rotina"},{id:"tc8",nome:"Royale Home Center — Enviar NF",cliente:"Royale Home",d:5,prio:"normal",tag:"rotina"},{id:"tc9",nome:"Royal Nova Iguaçu — Enviar NF Meta",cliente:"Royal N. Iguaçu",d:5,prio:"normal",tag:"rotina"},{id:"tc10",nome:"Royal Super Você — Enviar NF Meta",cliente:"Royal Super",d:5,prio:"normal",tag:"rotina"}],
+  "Alexandre Pires":[{id:"ad1",nome:"Transmargo — Enviar Pix Meta R$ 500,00",cliente:"Transmargo",d:2,prio:"normal",tag:"rotina"},{id:"ad2",nome:"Revisar orçamento Cliente Google",cliente:"Geral",d:2,prio:"normal",tag:"rotina"},{id:"ad3",nome:"Casa Nobre — Atualizar Público",cliente:"Casa Nobre",d:1,prio:"normal",tag:"rotina"},{id:"ad4",nome:"Escola do Mecânico — Ativar campanhas vagas",cliente:"Escola Mecânico",d:0,prio:"high",tag:"rotina"},{id:"ad5",nome:"Mitsubishi Kettei — Enviar NF para Mônica",cliente:"Mitsubishi",d:0,prio:"normal",tag:"rotina"},{id:"ad6",nome:"CNA Resende — Enviar Boleto R$ 600,00",cliente:"CNA Resende",d:10,prio:"normal",tag:"rotina"},{id:"ad7",nome:"Pousada Beni — Enviar Pix Meta R$ 1.000",cliente:"Pousada Beni",d:0,prio:"normal",tag:"rotina"},{id:"ad8",nome:"Revisar orçamento Cliente Meta",cliente:"Geral",d:2,prio:"normal",tag:"rotina"},{id:"ad9",nome:"Verificar se tem dash no formulário",cliente:"Interno",d:5,prio:"normal",tag:"rotina"}],
+  "Kelven Pimenta":[{id:"kp1",nome:"Enviar para Rian feedback da Dra. Júlia",cliente:"Interno",d:6,prio:"urgent",tag:"estratégica"},{id:"kp2",nome:"Cancelar assinatura no Kiwify",cliente:"Interno",d:6,prio:"urgent",tag:"estratégica"},{id:"kp3",nome:"Reunião com Bob sobre Urbanbox",cliente:"Urbanbox",d:6,prio:"high",tag:"estratégica"},{id:"kp4",nome:"Criar analista dos vídeos Povão",cliente:"Povão",d:6,prio:"high",tag:"estratégica"},{id:"kp5",nome:"Marcar reunião com Maga — gerar valor",cliente:"Maga",d:6,prio:"high",tag:"estratégica"},{id:"kp6",nome:"Call com Pedro TI — melhorar o PC",cliente:"Interno",d:6,prio:"normal",tag:"estratégica"}],
+  "Ana Clara Rayol":[]
+};
+const TD={
+  "Marcos Coelho":["Zen — Reenvio do checklist final","PopCom — Reenvio do checklist","Laluz Jóias — Reenvio do checklist","Hotel Fazenda — Reenvio do checklist","Egawa Sushi — Reenvio do checklist","Dra Lívia Saviolo — Reenvio do checklist","Clinica Primar — Reenvio","Casa do Arroz — Reenvio","Barbearia Vip — Reenvio","Simone Freitas — Reenvio","Zamix — Reenvio","Aflux — Reenvio","ASSERJ — Subir Criativo LinkedIn","CDS Campos — Enviar Boleto R$ 1.500","CDS Barra Piraí — Enviar Boleto R$ 1.200","Fábio Queiroz — Verificar post (3×)"],
+  "Pedro Augusto":["Pets Sublime — Onboarding E Apresentação","Pets Sublime — Briefing e Estratégia","Boa Pedida — Briefing e Estratégia","petsublime — Dash Controle Financeiro","Valemedh — Revisão estratégica","Compor Móveis — Revisão estratégica","Darve Import — Revisão estratégica","Pousada Beni — Revisão estratégica","Farmabril — Revisão estratégica","Açougue Boizão — Atualizar Público","Urban Box — Checar Reunião","Evandro Mbroker — Checar Reunião","New Shoes — Checar Reunião"],
+  "Tiago Ciribeli":["Zamix — Subir estáticos Dia das Mães","ASSERJ — Subir Criativo LinkedIn","ASSERJ — Verificar post (3×)","Fábio Queiroz — Verificar post (3×)","Adailton Jóias — Reenvio","Zamix — Reenvio","Simone Freitas — Reenvio","Casa do Arroz — Reenvio","Barbearia Vip — Reenvio","New Shoes — Checar Reunião"],
+  "Alexandre Pires":["Logic Hotel — Subir criativos do grupo","Top Celular — Relatório completo","Eko Cosméticos — Enviar Pix Meta R$ 1.000","CNA Resende — Subir criativos","Povão — Subir Criativo","Vincol Max — Subir criativos Maio","Eko Cosméticos — Atualizar público","Valemedh — Atualizar público","Farmabril — Checar Reunião","Drogatur — Negativação de palavras chaves"],
+  "Ana Clara Rayol":["Pets Sublime — Onboarding E Apresentação","Boa Pedida — Onboarding E Apresentação","Soneda — Desligar campanhas 15.04","Soneda — Tag [teste] nas campanhas","Soneda — Subir criativos do grupo","Pet Sublime — Subir estratégia","Portal da Saudade — Subir criativos"],
+  "Kelven Pimenta":[]
+};
+
+let tab='geral',per='semana',gest='Marcos Coelho',srt='dias',busy=false;
+const pC=n=>n>20?'#e53e3e':n>10?'#dd6b20':n>0?'#c08a0e':'#1DB886';
+const hC=h=>h>=60?'#1DB886':h>=35?'#dd6b20':'#e53e3e';
+const pfrom=p=>{const d=new Date();d.setDate(d.getDate()-PD[p]);return d.toISOString().split('T')[0]};
+const fd=()=>new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+const ft=()=>new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+
+window.onload=()=>{document.getElementById('fdate').textContent=fd();document.getElementById('hdr-time').textContent='Última atualização: '+fd()+' '+ft();render();};
+
+function setTab(t){tab=t;['geral','gestor'].forEach(k=>document.getElementById('tab-'+k).classList.toggle('active',k===t));render();}
+function setPer(p){per=p;['semana','mes','ano'].forEach(k=>document.getElementById('per-'+k).classList.toggle('active',k===p));render();}
+function setGest(n){gest=n;render();}
+function setSrt(s){srt=s;render();}
+function render(){document.getElementById('content').innerHTML=tab==='geral'?rGeral():rGest();}
+
+function rGeral(){
+  const {pend:P,done:D,alertas:A}=ST;
+  const tP=Object.values(P).reduce((a,b)=>a+b,0),tD=Object.values(D).reduce((a,b)=>a+b,0);
+  const tx=tP+tD>0?Math.round(tD/(tP+tD)*100):0;
+  const mP=Math.max(...Object.values(P),1),mD=Math.max(...Object.values(D),1);
+  const sP=[...GESTORES].sort((a,b)=>(P[b.name]||0)-(P[a.name]||0));
+  const sD=[...GESTORES].sort((a,b)=>(D[b.name]||0)-(D[a.name]||0));
+  const tc=tx>=50?'#1DB886':tx>=35?'#dd6b20':'#e53e3e';
+
+  const kpis=`<div class="kpi-grid">
+    <div class="kpi"><div class="kpi-top" style="background:#e53e3e"></div><div class="kpi-lbl">Pendentes Agora</div><div class="kpi-val" style="color:#e53e3e">${tP}+</div><div class="kpi-sub">Fazer · Rotina Já</div></div>
+    <div class="kpi"><div class="kpi-top" style="background:#1DB886"></div><div class="kpi-lbl">Concluídas · ${PL[per]}</div><div class="kpi-val" style="color:#1DB886">${tD}+</div><div class="kpi-sub">Últimos ${PD[per]} dias</div></div>
+    <div class="kpi"><div class="kpi-top" style="background:${tc}"></div><div class="kpi-lbl">Taxa de Execução</div><div class="kpi-val" style="color:${tc}">${tx}%</div><div class="kpi-sub">Feitas / (Pendentes + Feitas)</div></div>
+    <div class="kpi"><div class="kpi-top" style="background:#dd6b20"></div><div class="kpi-lbl">Alertas Críticos</div><div class="kpi-val" style="color:#dd6b20">${A.filter(a=>a.u).length}</div><div class="kpi-sub">Ação imediata necessária</div></div>
+  </div>`;
+
+  const bP=sP.map(g=>{const v=P[g.name]||0,pct=(v/mP)*100,c=pC(v);return`<div class="brow"><div class="btop"><div class="bname"><span class="ava" style="background:${CBG[g.name]};color:${COR[g.name]}">${g.ini}</span>${g.name.split(' ')[0]}</div><span class="bval" style="color:${c}">${v}</span></div><div class="btrack"><div class="bfill" style="width:${pct}%;background:${c}"></div></div></div>`}).join('');
+  const bD=sD.map(g=>{const v=D[g.name]||0,pct=(v/mD)*100;return`<div class="brow"><div class="btop"><div class="bname"><span class="ava" style="background:#e8f8f2;color:#1DB886">${g.ini}</span>${g.name.split(' ')[0]}</div><span class="bval" style="color:#1DB886">${v}</span></div><div class="btrack"><div class="bfill" style="width:${pct}%;background:#1DB886"></div></div></div>`}).join('');
+  const hl=GESTORES.map(g=>{const p=P[g.name]||0,c=D[g.name]||0,h=p+c>0?Math.round(c/(p+c)*100):100,hc=hC(h);return`<div class="hrow"><span class="ava" style="background:${CBG[g.name]};color:${COR[g.name]}">${g.ini}</span><div class="hmeta"><div class="htop"><span class="hname">${g.name.split(' ')[0]}</span><span class="hpct" style="color:${hc}">${h}%</span></div><div class="htrack"><div class="hfill" style="width:${h}%;background:${hc}"></div></div><div class="hsub">${c} concluídas · ${p} pendentes</div></div></div>`}).join('');
+  const al=A.map(a=>{const c=a.u?'#e53e3e':'#dd6b20',bg=a.u?'#fef2f2':'#fff7ed';const bd=a.u?`<span class="badge" style="background:#fef2f2;color:#e53e3e">Urgente</span>`:`<span class="badge" style="background:#fff7ed;color:#dd6b20">Atenção</span>`;return`<div class="arow"><div><div class="aname">${bd}<span style="color:${c}">${a.c}</span></div><div class="asub">${a.g} · ${a.n} tarefa${a.n>1?'s':''} em atraso</div></div><span class="adias" style="color:${c}">${a.d}d</span></div>`}).join('');
+
+  return`${kpis}
+  <div class="g2">
+    <div class="card"><div class="ctit"><span class="cdot" style="background:#e53e3e"></span>Pendentes por gestor</div>${bP}</div>
+    <div class="card"><div class="ctit"><span class="cdot" style="background:#1DB886"></span>Concluídas · ${PL[per]}</div>${bD}</div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ctit"><span class="cdot" style="background:#c08a0e"></span>Health Score — feitas vs pendentes</div>${hl}</div>
+    <div class="card"><div class="ctit"><span class="cdot" style="background:#e53e3e"></span>Alertas — ação imediata</div>${al}<div class="rule"><strong style="color:#1DB886">Regra 4DX</strong><br/>Meta: zero tarefas em "Fazer · Rotina Já" com mais de 48h em aberto.<br/>Cada gestor deve zerar sua fila diariamente.</div></div>
+  </div>`;
+}
+
+function rGest(){
+  const g=GESTORES.find(x=>x.name===gest);
+  const cor=COR[gest],bg=CBG[gest];
+  const p=ST.pend[gest]||0,c=ST.done[gest]||0;
+  const h=p+c>0?Math.round(c/(p+c)*100):100,hc=hC(h);
+  const meta=Math.max(Math.ceil(p/5),3),win=c>=meta;
+  const lp=Math.min(Math.round((c/meta)*100),100);
+
+  let tasks=[...(TP[gest]||[])];
+  if(srt==='dias') tasks.sort((a,b)=>b.d-a.d);
+  else if(srt==='prio'){const o={urgent:0,high:1,normal:2};tasks.sort((a,b)=>o[a.prio]-o[b.prio]);}
+  else tasks.sort((a,b)=>a.tag.localeCompare(b.tag));
+
+  const gBtns=GESTORES.map(gx=>{const a=gx.name===gest,c2=COR[gx.name],b2=CBG[gx.name];return`<button class="gbtn${a?' active':''}" onclick="setGest('${gx.name}')" style="${a?`background:${b2};border-color:${c2};color:${c2}`:''}"><span class="ava" style="background:${b2};color:${c2}">${gx.ini}</span>${gx.name.split(' ')[0]}</button>`}).join('');
+
+  const tH=tasks.length===0?`<div class="empty">Nenhuma tarefa pendente ✓</div>`:tasks.map(t=>{
+    const dc=t.d>5?'#e53e3e':t.d>2?'#dd6b20':t.d>0?'#c08a0e':'#a0aec0';
+    const tg=TAG[t.tag]||{bg:'#f7fafc',c:'#718096'};
+    const pr=t.prio==='urgent'?{bg:'#fef2f2',c:'#e53e3e',l:'Urgente'}:t.prio==='high'?{bg:'#fff7ed',c:'#dd6b20',l:'Alta'}:{bg:'#f7fafc',c:'#a0aec0',l:'Normal'};
+    return`<div class="titem"><div style="flex:1;min-width:0"><div class="tnom">${t.nome}</div><div class="ttags"><span class="tag" style="background:${tg.bg};color:${tg.c}">${t.tag}</span><span class="tag" style="background:#f7fafc;color:#718096;border:1px solid #e2e8f0">${t.cliente}</span></div></div><div class="tmeta"><span class="tdias" style="color:${dc}">${t.d===0?'Hoje':t.d+'d'}</span><span class="tprio" style="background:${pr.bg};color:${pr.c}">${pr.l}</span></div></div>`;
+  }).join('');
+  const dH=(TD[gest]||[]).map(t=>`<div class="ditem"><span class="dchk">✓</span><span>${t}</span></div>`).join('');
+  const sB=['dias','prio','tag'].map(k=>`<button class="sbtn${k===srt?' active':''}" onclick="setSrt('${k}')">${k==='dias'?'Atraso':k==='prio'?'Prioridade':'Tag'}</button>`).join('');
+
+  return`
+  <div class="gbtns">${gBtns}</div>
+  <div class="ghdr">
+    <div class="ginfo"><div class="glg" style="background:${bg};color:${cor}">${g.ini}</div><div><div class="gnom">${gest}</div><div class="gcar">Gestor · Keepads · ${PL[per]}</div></div></div>
+    <div class="gkpis">
+      <div class="gkpi"><div class="gkl">Pendentes</div><div class="gkv" style="color:#e53e3e">${p}</div></div>
+      <div class="gkpi"><div class="gkl">Concluídas</div><div class="gkv" style="color:#1DB886">${c}</div></div>
+      <div class="gkpi"><div class="gkl">Health</div><div class="gkv" style="color:${hc}">${h}%</div></div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ctit" style="justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:7px"><span class="cdot" style="background:#e53e3e"></span>Tarefas pendentes (${tasks.length})</span>
+        <div class="sbtns">${sB}</div>
+      </div>
+      <div class="tlist">${tH}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card" style="border-color:${cor}50">
+        <div class="ctit"><span class="cdot" style="background:${cor}"></span>4DX · Placar da semana</div>
+        <div class="pbox"><div class="plbl">Meta WIG</div><div class="pval">Zerar backlog: <strong style="color:#e53e3e">${p}</strong> → <strong style="color:#1DB886">0</strong> tarefas até sexta-feira</div></div>
+        <div class="pbox"><div class="plbl">Lead Measure · Tarefas concluídas esta semana</div><div class="ltop"><span style="font-size:11px;color:var(--muted)">Progresso</span><span style="color:${win?'#1DB886':'#dd6b20'}">${c} / ${meta}</span></div><div class="btrack" style="height:7px"><div class="bfill" style="width:${lp}%;background:${win?'#1DB886':'#dd6b20'}"></div></div></div>
+        <div class="pres ${win?'win':'lose'}"><div class="fico">${win?'🟢':'🔴'}</div><div><div class="fst" style="color:${win?'#1DB886':'#e53e3e'}">${win?'Ganhando':'Perdendo'}</div><div class="fhi">${win?'No ritmo para zerar o backlog':'Faltam '+(meta-c)+' tarefas para recuperar'}</div></div></div>
+      </div>
+      <div class="card" style="flex:1">
+        <div class="ctit"><span class="cdot" style="background:#1DB886"></span>Concluídas · ${PL[per]} (${(TD[gest]||[]).length})</div>
+        <div class="dlist">${dH||'<div class="empty">Nenhuma tarefa concluída no período</div>'}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function doRefresh(){
+  if(busy)return;busy=true;
+  const btn=document.getElementById('btn-ref');btn.disabled=true;btn.classList.add('spin');
+  setSt('Buscando dados no ClickUp…','warn');
+  const from=pfrom(per),to=new Date().toISOString().split('T')[0];
+  try{
+    const r=await fetch('/api/refresh',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({from,to})
+    });
+    if(!r.ok){const e=await r.json();throw new Error(e.error||'Erro no servidor');}
+    const parsed=await r.json();
+    if(parsed.pend)ST.pend=parsed.pend;
+    if(parsed.done)ST.done=parsed.done;
+    document.getElementById('hdr-time').textContent='Última atualização: '+fd()+' '+ft();
+    setSt('Dados atualizados com sucesso ✓','ok');
+  }catch(e){setSt('Erro: '+e.message,'err');}
+  finally{busy=false;btn.disabled=false;btn.classList.remove('spin');render();}
+}
+function setSt(m,t){const el=document.getElementById('hdr-status');el.textContent=m;el.className='tb-status '+t;}
+</script>
+</body>
+</html>
