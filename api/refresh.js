@@ -10,72 +10,143 @@ module.exports = async function handler(req, res) {
   if (!cuKey) return res.status(500).json({ error: 'Sem CLICKUP_API_KEY' });
 
   var body = req.body;
-  var from = body.from;
-  var to = body.to;
-  if (!from || !to) return res.status(400).json({ error: 'from e to obrigatorios' });
+  var periodo = body.periodo || 'semana'; // semana, mes, ano
 
-  var LIST_ID = '901320419867';
+  var SPACE_ID = '901310794200';
 
   var NOMES = {
-    'Marcos': 'Marcos Coelho',
-    'Pedro': 'Pedro Augusto',
-    'Tiago': 'Tiago Ciribeli',
-    'Alexandre': 'Alexandre Pires',
-    'Kelven': 'Kelven Pimenta',
-    'Ana': 'Ana Clara Rayol'
+    'marcos': 'Marcos Coelho',
+    'pedro': 'Pedro Augusto',
+    'tiago': 'Tiago Ciribeli',
+    'alexandre': 'Alexandre Pires',
+    'kelven': 'Kelven Pimenta',
+    'ana': 'Ana Clara Rayol'
   };
 
   var GESTORES = ['Marcos Coelho','Pedro Augusto','Tiago Ciribeli','Alexandre Pires','Kelven Pimenta','Ana Clara Rayol'];
 
-  var pend = {};
-  var done = {};
-  GESTORES.forEach(function(g) { pend[g] = 0; done[g] = 0; });
-
   function mapNome(fullName) {
     if (!fullName) return null;
+    var lower = fullName.toLowerCase();
     var keys = Object.keys(NOMES);
     for (var i = 0; i < keys.length; i++) {
-      if (fullName.toLowerCase().indexOf(keys[i].toLowerCase()) !== -1) {
-        return NOMES[keys[i]];
-      }
+      if (lower.indexOf(keys[i]) !== -1) return NOMES[keys[i]];
     }
     return null;
   }
 
+  // Calcula range do periodo
+  function getRange(periodo) {
+    var now = new Date();
+    var from, to;
+
+    if (periodo === 'semana') {
+      // Domingo a Sabado da semana atual
+      var day = now.getDay();
+      from = new Date(now);
+      from.setDate(now.getDate() - day);
+      from.setHours(0,0,0,0);
+      to = new Date(from);
+      to.setDate(from.getDate() + 6);
+      to.setHours(23,59,59,999);
+    } else if (periodo === 'mes') {
+      from = new Date(now.getFullYear(), now.getMonth(), 1, 0,0,0,0);
+      to = new Date(now.getFullYear(), now.getMonth()+1, 0, 23,59,59,999);
+    } else {
+      from = new Date(now.getFullYear(), 0, 1, 0,0,0,0);
+      to = new Date(now.getFullYear(), 11, 31, 23,59,59,999);
+    }
+    return { from: from.getTime(), to: to.getTime() };
+  }
+
+  var hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  var hojeMs = hoje.getTime();
+  var amanha = hojeMs + 86400000;
+
+  var range = getRange(periodo);
+
+  var atrasado = {};
+  var venceHoje = {};
+  var feito = {};
+  GESTORES.forEach(function(g) {
+    atrasado[g] = 0;
+    venceHoje[g] = 0;
+    feito[g] = 0;
+  });
+
+  var headers = { 'Authorization': cuKey, 'Content-Type': 'application/json' };
+
   try {
-    var headers = { 'Authorization': cuKey, 'Content-Type': 'application/json' };
+    // Busca todas as listas do space
+    var rLists = await fetch('https://api.clickup.com/api/v2/space/' + SPACE_ID + '/list?archived=false', { headers: headers });
+    var dataLists = await rLists.json();
+    var lists = (dataLists.lists || []).map(function(l) { return l.id; });
 
-    // Busca tarefas PENDENTES
-    var urlPend = 'https://api.clickup.com/api/v2/list/' + LIST_ID + '/task?statuses[]=FAZER%20-%20ROTINA%20J%C3%81&include_closed=false&page=0&limit=100';
-    var rPend = await fetch(urlPend, { headers: headers });
-    var dataPend = await rPend.json();
+    // Busca folders do space e listas dentro deles
+    var rFolders = await fetch('https://api.clickup.com/api/v2/space/' + SPACE_ID + '/folder?archived=false', { headers: headers });
+    var dataFolders = await rFolders.json();
+    var folderPromises = (dataFolders.folders || []).map(function(f) {
+      return fetch('https://api.clickup.com/api/v2/folder/' + f.id + '/list?archived=false', { headers: headers })
+        .then(function(r) { return r.json(); })
+        .then(function(d) { return (d.lists || []).map(function(l) { return l.id; }); });
+    });
+    var folderLists = await Promise.all(folderPromises);
+    folderLists.forEach(function(fl) { lists = lists.concat(fl); });
 
-    if (dataPend.tasks) {
-      dataPend.tasks.forEach(function(task) {
-        (task.assignees || []).forEach(function(a) {
-          var nome = mapNome(a.username || a.email || '');
-          if (nome) pend[nome] = (pend[nome] || 0) + 1;
-        });
+    // Para cada lista, busca tarefas abertas COM due date
+    var taskPromises = lists.map(function(listId) {
+      var url = 'https://api.clickup.com/api/v2/list/' + listId + '/task?include_closed=false&due_date_gt=0&page=0&limit=100';
+      return fetch(url, { headers: headers })
+        .then(function(r) { return r.json(); })
+        .then(function(d) { return d.tasks || []; })
+        .catch(function() { return []; });
+    });
+
+    var allTaskArrays = await Promise.all(taskPromises);
+    var allTasks = [];
+    allTaskArrays.forEach(function(arr) { allTasks = allTasks.concat(arr); });
+
+    // Classifica tarefas abertas
+    allTasks.forEach(function(task) {
+      if (!task.due_date) return;
+      var due = parseInt(task.due_date);
+      (task.assignees || []).forEach(function(a) {
+        var nome = mapNome(a.username || a.email || '');
+        if (!nome) return;
+        if (due < hojeMs) {
+          atrasado[nome] = (atrasado[nome] || 0) + 1;
+        } else if (due >= hojeMs && due < amanha) {
+          venceHoje[nome] = (venceHoje[nome] || 0) + 1;
+        }
       });
-    }
+    });
 
-    // Busca tarefas CONCLUIDAS no periodo
-    var fromMs = new Date(from).getTime();
-    var toMs = new Date(to).getTime() + 86400000;
-    var urlDone = 'https://api.clickup.com/api/v2/list/' + LIST_ID + '/task?statuses[]=FEITO&include_closed=true&date_done_gt=' + fromMs + '&date_done_lt=' + toMs + '&page=0&limit=100';
-    var rDone = await fetch(urlDone, { headers: headers });
-    var dataDone = await rDone.json();
+    // Busca tarefas FEITAS no periodo selecionado
+    var donePromises = lists.map(function(listId) {
+      var url = 'https://api.clickup.com/api/v2/list/' + listId + '/task?statuses[]=FEITO&include_closed=true&date_done_gt=' + range.from + '&date_done_lt=' + range.to + '&page=0&limit=100';
+      return fetch(url, { headers: headers })
+        .then(function(r) { return r.json(); })
+        .then(function(d) { return d.tasks || []; })
+        .catch(function() { return []; });
+    });
 
-    if (dataDone.tasks) {
-      dataDone.tasks.forEach(function(task) {
-        (task.assignees || []).forEach(function(a) {
-          var nome = mapNome(a.username || a.email || '');
-          if (nome) done[nome] = (done[nome] || 0) + 1;
-        });
+    var allDoneArrays = await Promise.all(donePromises);
+    var allDone = [];
+    allDoneArrays.forEach(function(arr) { allDone = allDone.concat(arr); });
+
+    allDone.forEach(function(task) {
+      (task.assignees || []).forEach(function(a) {
+        var nome = mapNome(a.username || a.email || '');
+        if (nome) feito[nome] = (feito[nome] || 0) + 1;
       });
-    }
+    });
 
-    return res.status(200).json({ pend: pend, done: done });
+    return res.status(200).json({
+      atrasado: atrasado,
+      venceHoje: venceHoje,
+      feito: feito
+    });
 
   } catch(e) {
     return res.status(500).json({ error: e.message });
