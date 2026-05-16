@@ -363,7 +363,7 @@ async function doRefresh(){
     const r=await fetch('/api/refresh',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({from,to,secret:'keepads2025@dash'})
+      body:JSON.stringify({from,to})
     });
     if(!r.ok){const e=await r.json();throw new Error(e.error||'Erro no servidor');}
     const parsed=await r.json();
