@@ -6,7 +6,12 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
 
-  const { from, to } = req.body;
+  const DASHBOARD_SECRET = process.env.DASHBOARD_SECRET;
+  const { from, to, secret } = req.body;
+
+  if (!DASHBOARD_SECRET || secret !== DASHBOARD_SECRET) {
+    return res.status(401).json({ error: 'Não autorizado' });
+  }
 
   if (!from || !to) {
     return res.status(400).json({ error: 'Parâmetros from e to são obrigatórios' });
@@ -35,4 +40,4 @@ Execute:
 1) clickup_filter_tasks list_ids=["901320419867"] statuses=["FAZER - ROTINA JÁ"] page=0
 2) clickup_filter_tasks list_ids=["901320419867"] statuses=["FEITO"] include_closed=true date_done_from="${from}" date_done_to="${to}" page=0
 
-Some +1 por assignee. Mapeamento: "Marcos"→"Marcos Coelho" | "Pedro"→"Pedro Augusto" | "Tiago"→"Tiago Ciribeli" | "Alexandre"→"Alexandre Pires"
+Some +1 por assignee. Mapeamento: "Marcos"→"Marcos Coelho" | "Pedro"→"Pedro Augusto" | "Tiago"→"
