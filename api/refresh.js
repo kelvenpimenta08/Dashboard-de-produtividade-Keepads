@@ -52,7 +52,10 @@ Retorne APENAS este JSON puro, sem texto adicional:
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(500).json({ error: 'Erro ao chamar Claude', detail: data });
+      return res.status(500).json({ error: 'Erro ao chamar Claude', status: response.status, detail: data });
+    }
+
+    console.log('Resposta Anthropic:', JSON.stringify(data).substring(0, 500));
     }
 
     const text = (data.content || [])
