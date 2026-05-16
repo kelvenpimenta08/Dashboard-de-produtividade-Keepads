@@ -47,13 +47,13 @@ module.exports = async function handler(req, res) {
 
     if (!r.ok) return res.status(200).json({ error: 'Erro Anthropic', status: r.status, detail: data });
 
-    var text = (data.content || []).filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('');
-    var match = text.match(/\{[\s\S]*\}/);
-    if (!match) return res.status(200).json({ error: 'JSON invalido', raw: text.substring(0, 500) });
+    // Retorna resposta bruta completa para debug
+    return res.status(200).json({
+      stop_reason: data.stop_reason,
+      content_types: (data.content || []).map(function(b) { return b.type; }),
+      content_raw: JSON.stringify(data.content).substring(0, 2000)
+    });
 
-    var parsed = JSON.parse(match[0]);
-    parsed._debug_raw = text.substring(0, 500);
-    return res.status(200).json(parsed);
   } catch(e) {
     return res.status(200).json({ error: e.message });
   }
