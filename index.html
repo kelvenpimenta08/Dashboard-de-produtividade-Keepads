@@ -6,28 +6,22 @@
 <title>Keepads · Painel de Produtividade</title>
 <link rel="icon" href="https://keepads.com.br/logos/header-logo.webp"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --green:#1DB886;--green-light:#e8f8f2;--green-mid:#a8dfc8;--green-dark:#0f9b6e;
-  --bg:#f0f5f2;--surface:#fff;--surface2:#f7faf8;
-  --border:#e0ebe5;--border2:#cdddd6;
+  --bg:#f0f5f2;--surface:#fff;--border:#e0ebe5;--border2:#cdddd6;
   --text:#0d1a14;--text2:#3d5248;--muted:#7a9589;
-  --red:#e53e3e;--red-bg:#fef2f2;
-  --orange:#dd6b20;--orange-bg:#fff7ed;
-  --r:10px;
-  --sh:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
-  --sh2:0 4px 14px rgba(0,0,0,.09);
+  --red:#e53e3e;--orange:#dd6b20;--yellow:#c08a0e;--purple:#6d48d6;--blue:#2b6cb0;
+  --r:10px;--sh:0 1px 3px rgba(0,0,0,.06);--sh2:0 4px 14px rgba(0,0,0,.09);
   --font:'Plus Jakarta Sans',system-ui,sans-serif;
 }
 body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;min-height:100vh}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 .topbar{background:#fff;border-bottom:1.5px solid var(--border);padding:0 36px;display:flex;justify-content:space-between;align-items:center;height:66px;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
 .tb-left{display:flex;align-items:center;gap:18px}
-.tb-logo{height:30px}
-.tb-sep{width:1.5px;height:30px;background:var(--border)}
+.tb-logo{height:30px}.tb-sep{width:1.5px;height:30px;background:var(--border)}
 .tb-badge{background:var(--green-light);color:var(--green-dark);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;letter-spacing:.04em}
 .tb-right{display:flex;align-items:center;gap:12px}
 .tb-info{text-align:right}
@@ -35,8 +29,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .tb-status{font-size:11px;margin-top:2px;font-weight:600}
 .tb-status.ok{color:var(--green)}.tb-status.err{color:var(--red)}.tb-status.warn{color:var(--orange)}
 .btn{display:inline-flex;align-items:center;gap:8px;background:var(--green);border:none;color:#fff;padding:10px 22px;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;transition:.18s;box-shadow:0 2px 10px rgba(29,184,134,.3)}
-.btn:hover{background:var(--green-dark);transform:translateY(-1px)}
-.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn:hover{background:var(--green-dark);transform:translateY(-1px)}.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .btn.spin svg{animation:spin .7s linear infinite}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .ctrl{background:#fff;border-bottom:1.5px solid var(--border);padding:0 36px;display:flex;justify-content:space-between;align-items:center;height:52px}
@@ -49,7 +42,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .per-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
 .inner{padding:26px 36px}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.kpi{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:.18s}
+.kpi{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:.18s;cursor:default}
 .kpi:hover{box-shadow:var(--sh2);transform:translateY(-2px)}
 .kpi-top{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
 .kpi-lbl{font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
@@ -80,24 +73,31 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .gbtn{padding:8px 16px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);border-radius:8px;transition:.14s;display:flex;align-items:center;gap:7px;box-shadow:var(--sh)}
 .ghdr{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;background:#fff;border:1.5px solid var(--border);border-radius:var(--r);margin-bottom:14px;box-shadow:var(--sh)}
 .ginfo{display:flex;align-items:center;gap:14px}
-.glg{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
+.glg{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800}
 .gnom{font-size:16px;font-weight:800}
 .gcar{font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
-.gkpis{display:flex;gap:28px}
+.gkpis{display:flex;gap:20px}
 .gkpi{text-align:center}
 .gkl{font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
 .gkv{font-size:24px;font-weight:900}
-.gstat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
-.gstat{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);text-align:center}
-.gstat-lbl{font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
-.gstat-val{font-size:32px;font-weight:900;line-height:1}
-.gstat-sub{font-size:10px;color:var(--muted);margin-top:4px;font-weight:500}
+.filter-tabs{display:flex;gap:8px;margin-bottom:14px}
+.ftab{padding:7px 16px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);border-radius:20px;transition:.14s}
+.ftab.active-red{background:#fef2f2;border-color:#fca5a5;color:var(--red)}
+.ftab.active-orange{background:#fff7ed;border-color:#fed7aa;color:var(--orange)}
+.ftab.active-green{background:#e8f8f2;border-color:#a8dfc8;color:var(--green-dark)}
+.task-list{max-height:420px;overflow-y:auto}
+.task-item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1.5px solid var(--border);gap:10px}
+.task-item:last-child{border-bottom:none}
+.task-nome{font-size:11px;color:var(--text2);font-weight:500;line-height:1.5;margin-bottom:6px}
+.task-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px}
+.task-due{font-size:11px;font-weight:800;flex-shrink:0;margin-top:2px}
+.empty{font-size:12px;color:var(--muted);text-align:center;padding:24px;font-weight:500}
 .footer{background:#fff;border-top:1.5px solid var(--border);padding:14px 36px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--muted);font-weight:500;margin-top:4px}
-.flogo{height:22px}
-.fright{display:flex;align-items:center;gap:16px}
+.flogo{height:22px}.fright{display:flex;align-items:center;gap:16px}
 .fbadge{display:inline-flex;align-items:center;gap:5px;background:var(--green-light);color:var(--green-dark);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
 @media(max-width:980px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}.topbar,.ctrl,.inner,.footer{padding-left:16px;padding-right:16px}}
-@media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr}.topbar{flex-direction:column;height:auto;padding:14px 16px;gap:10px}.ctrl{flex-direction:column;height:auto;padding:10px 16px;gap:8px}}
+@media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr}.topbar{flex-direction:column;height:auto;padding:14px 16px;gap:10px}.ctrl{flex-direction:column;height:auto;padding:10px 16px;gap:8px}.gkpis{gap:12px}.ghdr{flex-direction:column;align-items:flex-start;gap:12px}}
 </style>
 </head>
 <body>
@@ -146,16 +146,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 const GESTORES=[{name:"Marcos Coelho",ini:"MC"},{name:"Pedro Augusto",ini:"PA"},{name:"Tiago Ciribeli",ini:"TC"},{name:"Alexandre Pires",ini:"AD"},{name:"Ana Clara Rayol",ini:"AC"},{name:"Kelven Pimenta",ini:"KP"}];
 const COR={"Marcos Coelho":"#e53e3e","Pedro Augusto":"#dd6b20","Tiago Ciribeli":"#c08a0e","Alexandre Pires":"#1DB886","Ana Clara Rayol":"#2b6cb0","Kelven Pimenta":"#6d48d6"};
 const CBG={"Marcos Coelho":"#fef2f2","Pedro Augusto":"#fff7ed","Tiago Ciribeli":"#fffbeb","Alexandre Pires":"#e8f8f2","Ana Clara Rayol":"#ebf8ff","Kelven Pimenta":"#f3efff"};
+const TAG_CORES={"rotina":{bg:"#ebf8ff",c:"#2b6cb0"},"tarefa estratégica":{bg:"#f3efff",c:"#6d48d6"},"tarefa especifica":{bg:"#fff7ed",c:"#dd6b20"},"tarefa específica":{bg:"#fff7ed",c:"#dd6b20"},"onboarding":{bg:"#e8f8f2",c:"#1DB886"},"cliente":{bg:"#fff0f6",c:"#c0507a"}};
 const PL={semana:"Esta Semana",mes:"Este Mês",ano:"Este Ano"};
 const hC=h=>h>=60?"#1DB886":h>=35?"#dd6b20":"#e53e3e";
 
-let ST={
-  atrasado:{"Marcos Coelho":0,"Pedro Augusto":0,"Tiago Ciribeli":0,"Alexandre Pires":0,"Ana Clara Rayol":0,"Kelven Pimenta":0},
-  venceHoje:{"Marcos Coelho":0,"Pedro Augusto":0,"Tiago Ciribeli":0,"Alexandre Pires":0,"Ana Clara Rayol":0,"Kelven Pimenta":0},
-  feito:{"Marcos Coelho":0,"Pedro Augusto":0,"Tiago Ciribeli":0,"Alexandre Pires":0,"Ana Clara Rayol":0,"Kelven Pimenta":0}
-};
-
-let tab="geral",per="semana",gest="Marcos Coelho",busy=false;
+let DADOS={};
+let tab="geral",per="semana",gest="Marcos Coelho",filtro="atrasado",busy=false;
 const fd=()=>new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"});
 const ft=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 
@@ -167,142 +163,138 @@ window.onload=()=>{
 
 function setTab(t){tab=t;["geral","gestor"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));render();}
 function setPer(p){per=p;["semana","mes","ano"].forEach(k=>document.getElementById("per-"+k).classList.toggle("active",k===p));doRefresh();}
-function setGest(n){gest=n;render();}
+function setGest(n){gest=n;filtro="atrasado";render();}
+function setFiltro(f){filtro=f;render();}
 function render(){document.getElementById("content").innerHTML=tab==="geral"?rGeral():rGest();}
 
+function tagHtml(tags){
+  return (tags||[]).map(function(t){
+    var tc=TAG_CORES[t.toLowerCase()]||{bg:"#f7fafc",c:"#718096"};
+    return '<span class="tag" style="background:'+tc.bg+';color:'+tc.c+'">'+t+'</span>';
+  }).join("");
+}
+
+function taskListHtml(tasks,cor){
+  if(!tasks||tasks.length===0) return '<div class="empty">Nenhuma tarefa nesta categoria ✓</div>';
+  return tasks.map(function(t){
+    return '<div class="task-item"><div style="flex:1;min-width:0"><div class="task-nome">'+t.nome+'</div><div class="task-tags">'+tagHtml(t.tags)+'</div></div><div class="task-due" style="color:'+cor+'">'+t.dueStr+'</div></div>';
+  }).join("");
+}
+
 function rGeral(){
-  const A=ST.atrasado,V=ST.venceHoje,F=ST.feito;
-  const tA=Object.values(A).reduce((a,b)=>a+b,0);
-  const tV=Object.values(V).reduce((a,b)=>a+b,0);
-  const tF=Object.values(F).reduce((a,b)=>a+b,0);
-  const tPend=tA+tV;
-  const tx=tPend+tF>0?Math.round(tF/(tPend+tF)*100):0;
-  const txC=hC(tx);
-  const mA=Math.max(...Object.values(A),1);
-  const mV=Math.max(...Object.values(V),1);
-  const mF=Math.max(...Object.values(F),1);
+  var tA=0,tV=0,tF=0;
+  GESTORES.forEach(function(g){
+    var d=DADOS[g.name];
+    if(!d)return;
+    tA+=d.totalAtrasado||0;
+    tV+=d.totalVenceHoje||0;
+    tF+=d.totalFeito||0;
+  });
+  var tPend=tA+tV;
+  var tx=tPend+tF>0?Math.round(tF/(tPend+tF)*100):0;
+  var txC=hC(tx);
+  var mA=Math.max(1,...GESTORES.map(function(g){return DADOS[g.name]?DADOS[g.name].totalAtrasado:0;}));
+  var mV=Math.max(1,...GESTORES.map(function(g){return DADOS[g.name]?DADOS[g.name].totalVenceHoje:0;}));
+  var mF=Math.max(1,...GESTORES.map(function(g){return DADOS[g.name]?DADOS[g.name].totalFeito:0;}));
 
-  const kpis=`<div class="kpi-grid">
-    <div class="kpi"><div class="kpi-top" style="background:#e53e3e"></div><div class="kpi-lbl">Em Atraso</div><div class="kpi-val" style="color:#e53e3e">${tA}</div><div class="kpi-sub">Tarefas vencidas</div></div>
-    <div class="kpi"><div class="kpi-top" style="background:#dd6b20"></div><div class="kpi-lbl">Vence Hoje</div><div class="kpi-val" style="color:#dd6b20">${tV}</div><div class="kpi-sub">Prazo até fim do dia</div></div>
-    <div class="kpi"><div class="kpi-top" style="background:#1DB886"></div><div class="kpi-lbl">Feitas · ${PL[per]}</div><div class="kpi-val" style="color:#1DB886">${tF}</div><div class="kpi-sub">Tarefas concluídas</div></div>
-    <div class="kpi"><div class="kpi-top" style="background:${txC}"></div><div class="kpi-lbl">Taxa de Execução</div><div class="kpi-val" style="color:${txC}">${tx}%</div><div class="kpi-sub">Feitas / (Pendentes + Feitas)</div></div>
-  </div>`;
+  var kpis='<div class="kpi-grid">'
+    +'<div class="kpi"><div class="kpi-top" style="background:#e53e3e"></div><div class="kpi-lbl">Em Atraso</div><div class="kpi-val" style="color:#e53e3e">'+tA+'</div><div class="kpi-sub">Tarefas vencidas</div></div>'
+    +'<div class="kpi"><div class="kpi-top" style="background:#dd6b20"></div><div class="kpi-lbl">Vence Hoje</div><div class="kpi-val" style="color:#dd6b20">'+tV+'</div><div class="kpi-sub">Prazo até fim do dia</div></div>'
+    +'<div class="kpi"><div class="kpi-top" style="background:#1DB886"></div><div class="kpi-lbl">Feitas · '+PL[per]+'</div><div class="kpi-val" style="color:#1DB886">'+tF+'</div><div class="kpi-sub">Tarefas concluídas</div></div>'
+    +'<div class="kpi"><div class="kpi-top" style="background:'+txC+'"></div><div class="kpi-lbl">Taxa de Execução</div><div class="kpi-val" style="color:'+txC+'">'+tx+'%</div><div class="kpi-sub">Feitas / (Pendentes + Feitas)</div></div>'
+    +'</div>';
 
-  const bA=GESTORES.map(g=>{const v=A[g.name]||0,pct=v/mA*100;return`<div class="brow"><div class="btop"><div class="bname"><span class="ava" style="background:${CBG[g.name]};color:${COR[g.name]}">${g.ini}</span>${g.name.split(" ")[0]}</div><span class="bval" style="color:#e53e3e">${v}</span></div><div class="btrack"><div class="bfill" style="width:${pct}%;background:#e53e3e"></div></div></div>`;}).join("");
-  const bV=GESTORES.map(g=>{const v=V[g.name]||0,pct=v/mV*100;return`<div class="brow"><div class="btop"><div class="bname"><span class="ava" style="background:${CBG[g.name]};color:${COR[g.name]}">${g.ini}</span>${g.name.split(" ")[0]}</div><span class="bval" style="color:#dd6b20">${v}</span></div><div class="btrack"><div class="bfill" style="width:${pct}%;background:#dd6b20"></div></div></div>`;}).join("");
-  const bF=GESTORES.map(g=>{const v=F[g.name]||0,pct=v/mF*100;return`<div class="brow"><div class="btop"><div class="bname"><span class="ava" style="background:${CBG[g.name]};color:${COR[g.name]}">${g.ini}</span>${g.name.split(" ")[0]}</div><span class="bval" style="color:#1DB886">${v}</span></div><div class="btrack"><div class="bfill" style="width:${pct}%;background:#1DB886"></div></div></div>`;}).join("");
+  var bA=GESTORES.map(function(g){var v=(DADOS[g.name]||{}).totalAtrasado||0,pct=v/mA*100;return'<div class="brow"><div class="btop"><div class="bname"><span class="ava" style="background:'+CBG[g.name]+';color:'+COR[g.name]+'">'+g.ini+'</span>'+g.name.split(" ")[0]+'</div><span class="bval" style="color:#e53e3e">'+v+'</span></div><div class="btrack"><div class="bfill" style="width:'+pct+'%;background:#e53e3e"></div></div></div>';}).join("");
+  var bV=GESTORES.map(function(g){var v=(DADOS[g.name]||{}).totalVenceHoje||0,pct=v/mV*100;return'<div class="brow"><div class="btop"><div class="bname"><span class="ava" style="background:'+CBG[g.name]+';color:'+COR[g.name]+'">'+g.ini+'</span>'+g.name.split(" ")[0]+'</div><span class="bval" style="color:#dd6b20">'+v+'</span></div><div class="btrack"><div class="bfill" style="width:'+pct+'%;background:#dd6b20"></div></div></div>';}).join("");
+  var bF=GESTORES.map(function(g){var v=(DADOS[g.name]||{}).totalFeito||0,pct=v/mF*100;return'<div class="brow"><div class="btop"><div class="bname"><span class="ava" style="background:'+CBG[g.name]+';color:'+COR[g.name]+'">'+g.ini+'</span>'+g.name.split(" ")[0]+'</div><span class="bval" style="color:#1DB886">'+v+'</span></div><div class="btrack"><div class="bfill" style="width:'+pct+'%;background:#1DB886"></div></div></div>';}).join("");
 
-  const hlHtml=GESTORES.map(g=>{
-    const ga=A[g.name]||0,gv=V[g.name]||0,gf=F[g.name]||0;
-    const tot=ga+gv+gf;
-    const h=tot>0?Math.round(gf/tot*100):100;
-    const hc=hC(h);
-    return`<div class="hrow"><span class="ava" style="background:${CBG[g.name]};color:${COR[g.name]}">${g.ini}</span><div class="hmeta"><div class="htop"><span class="hname">${g.name.split(" ")[0]}</span><span class="hpct" style="color:${hc}">${h}%</span></div><div class="htrack"><div class="hfill" style="width:${h}%;background:${hc}"></div></div><div class="hsub">${gf} feitas · ${ga} atrasadas · ${gv} vencem hoje</div></div></div>`;
+  var hlHtml=GESTORES.map(function(g){
+    var d=DADOS[g.name]||{totalAtrasado:0,totalVenceHoje:0,totalFeito:0};
+    var tot=d.totalAtrasado+d.totalVenceHoje+d.totalFeito;
+    var h=tot>0?Math.round(d.totalFeito/tot*100):100;
+    var hc=hC(h);
+    return'<div class="hrow"><span class="ava" style="background:'+CBG[g.name]+';color:'+COR[g.name]+'">'+g.ini+'</span><div class="hmeta"><div class="htop"><span class="hname">'+g.name.split(" ")[0]+'</span><span class="hpct" style="color:'+hc+'">'+h+'%</span></div><div class="htrack"><div class="hfill" style="width:'+h+'%;background:'+hc+'"></div></div><div class="hsub">'+d.totalFeito+' feitas · '+d.totalAtrasado+' atrasadas · '+d.totalVenceHoje+' vencem hoje</div></div></div>';
   }).join("");
 
-  const empBorder=tx>=60?"#a8dfc8":tx>=35?"#fed7aa":"#fca5a5";
+  var empBorder=tx>=60?"#a8dfc8":tx>=35?"#fed7aa":"#fca5a5";
+  var empBg=tx>=60?"#e8f8f2":tx>=35?"#fff7ed":"#fef2f2";
 
-  return`${kpis}
-  <div class="g3">
-    <div class="card"><div class="ctit"><span class="cdot" style="background:#e53e3e"></span>Em Atraso — por gestor</div>${bA}</div>
-    <div class="card"><div class="ctit"><span class="cdot" style="background:#dd6b20"></span>Vence Hoje — por gestor</div>${bV}</div>
-    <div class="card"><div class="ctit"><span class="cdot" style="background:#1DB886"></span>Feitas · ${PL[per]}</div>${bF}</div>
-  </div>
-  <div class="card">
-    <div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Health Score — saúde por gestor</div>
-    ${hlHtml}
-    <div class="empresa-health" style="border-color:${empBorder};background:${tx>=60?"#e8f8f2":tx>=35?"#fff7ed":"#fef2f2"}">
-      <div>
-        <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${txC}">Saúde Geral da Empresa</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">${tF} feitas · ${tA} atrasadas · ${tV} vencem hoje</div>
-      </div>
-      <div style="font-size:28px;font-weight:900;color:${txC}">${tx}%</div>
-    </div>
-  </div>`;
+  return kpis
+    +'<div class="g3">'
+    +'<div class="card"><div class="ctit"><span class="cdot" style="background:#e53e3e"></span>Em Atraso — por gestor</div>'+bA+'</div>'
+    +'<div class="card"><div class="ctit"><span class="cdot" style="background:#dd6b20"></span>Vence Hoje — por gestor</div>'+bV+'</div>'
+    +'<div class="card"><div class="ctit"><span class="cdot" style="background:#1DB886"></span>Feitas · '+PL[per]+'</div>'+bF+'</div>'
+    +'</div>'
+    +'<div class="card"><div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Health Score — saúde por gestor</div>'
+    +hlHtml
+    +'<div class="empresa-health" style="border-color:'+empBorder+';background:'+empBg+'">'
+    +'<div><div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:'+txC+'">Saúde Geral da Empresa</div>'
+    +'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+tF+' feitas · '+tA+' atrasadas · '+tV+' vencem hoje</div></div>'
+    +'<div style="font-size:28px;font-weight:900;color:'+txC+'">'+tx+'%</div>'
+    +'</div></div>';
 }
 
 function rGest(){
-  const g=GESTORES.find(x=>x.name===gest);
-  const cor=COR[gest],bg=CBG[gest];
-  const a=ST.atrasado[gest]||0,v=ST.venceHoje[gest]||0,f=ST.feito[gest]||0;
-  const tot=a+v+f;
-  const tx=tot>0?Math.round(f/tot*100):100;
-  const txC=hC(tx);
+  var g=GESTORES.find(function(x){return x.name===gest;});
+  var cor=COR[gest],bg=CBG[gest];
+  var d=DADOS[gest]||{totalAtrasado:0,totalVenceHoje:0,totalFeito:0,atrasado:[],venceHoje:[],feito:[]};
+  var tot=d.totalAtrasado+d.totalVenceHoje+d.totalFeito;
+  var tx=tot>0?Math.round(d.totalFeito/tot*100):100;
+  var txC=hC(tx);
 
-  const gBtns=GESTORES.map(gx=>{
-    const at=gx.name===gest;
-    return`<button class="gbtn${at?" active":""}" onclick="setGest('${gx.name}')" style="${at?`background:${CBG[gx.name]};border-color:${COR[gx.name]};color:${COR[gx.name]}`:""}" ><span class="ava" style="background:${CBG[gx.name]};color:${COR[gx.name]}">${gx.ini}</span>${gx.name.split(" ")[0]}</button>`;
+  var gBtns=GESTORES.map(function(gx){
+    var at=gx.name===gest;
+    return'<button class="gbtn'+(at?" active":"")+'" onclick="setGest(\''+gx.name+'\')" style="'+(at?"background:"+CBG[gx.name]+";border-color:"+COR[gx.name]+";color:"+COR[gx.name]:"")+'">'
+    +'<span class="ava" style="background:'+CBG[gx.name]+';color:'+COR[gx.name]+'">'+gx.ini+'</span>'+gx.name.split(" ")[0]+'</button>';
   }).join("");
 
-  const empBorder=tx>=60?"#a8dfc8":tx>=35?"#fed7aa":"#fca5a5";
+  var fAtClass=filtro==="atrasado"?"active-red":"";
+  var fVhClass=filtro==="venceHoje"?"active-orange":"";
+  var fFtClass=filtro==="feito"?"active-green":"";
 
-  return`
-  <div class="gbtns">${gBtns}</div>
-  <div class="ghdr">
-    <div class="ginfo">
-      <div class="glg" style="background:${bg};color:${cor}">${g.ini}</div>
-      <div><div class="gnom">${gest}</div><div class="gcar">Gestor · Keepads · ${PL[per]}</div></div>
-    </div>
-    <div class="gkpis">
-      <div class="gkpi"><div class="gkl">Em Atraso</div><div class="gkv" style="color:#e53e3e">${a}</div></div>
-      <div class="gkpi"><div class="gkl">Vence Hoje</div><div class="gkv" style="color:#dd6b20">${v}</div></div>
-      <div class="gkpi"><div class="gkl">Feitas</div><div class="gkv" style="color:#1DB886">${f}</div></div>
-      <div class="gkpi"><div class="gkl">Health</div><div class="gkv" style="color:${txC}">${tx}%</div></div>
-    </div>
-  </div>
-  <div class="gstat-grid">
-    <div class="gstat" style="border-color:#fca5a5">
-      <div class="gstat-lbl" style="color:#e53e3e">Em Atraso</div>
-      <div class="gstat-val" style="color:#e53e3e">${a}</div>
-      <div class="gstat-sub">Tarefas vencidas</div>
-    </div>
-    <div class="gstat" style="border-color:#fed7aa">
-      <div class="gstat-lbl" style="color:#dd6b20">Vence Hoje</div>
-      <div class="gstat-val" style="color:#dd6b20">${v}</div>
-      <div class="gstat-sub">Prazo até fim do dia</div>
-    </div>
-    <div class="gstat" style="border-color:#a8dfc8">
-      <div class="gstat-lbl" style="color:#1DB886">Feitas · ${PL[per]}</div>
-      <div class="gstat-val" style="color:#1DB886">${f}</div>
-      <div class="gstat-sub">Tarefas concluídas</div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Health Score</div>
-    <div class="hrow">
-      <span class="ava" style="background:${bg};color:${cor}">${g.ini}</span>
-      <div class="hmeta">
-        <div class="htop"><span class="hname">${gest}</span><span class="hpct" style="color:${txC}">${tx}%</span></div>
-        <div class="htrack"><div class="hfill" style="width:${tx}%;background:${txC}"></div></div>
-        <div class="hsub">${f} feitas · ${a} atrasadas · ${v} vencem hoje</div>
-      </div>
-    </div>
-    <div class="empresa-health" style="border-color:${empBorder};background:${tx>=60?"#e8f8f2":tx>=35?"#fff7ed":"#fef2f2"}">
-      <div>
-        <div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${txC}">${tx>=60?"No ritmo":tx>=35?"Atenção necessária":"Situação crítica"}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px">${tx>=60?"Executando bem no período":"Aumentar ritmo de entregas"}</div>
-      </div>
-      <div style="font-size:28px;font-weight:900;color:${txC}">${tx>=60?"🟢":tx>=35?"🟡":"🔴"}</div>
-    </div>
-  </div>`;
+  var tarefas=d[filtro]||[];
+  var taskCor=filtro==="atrasado"?"#e53e3e":filtro==="venceHoje"?"#dd6b20":"#1DB886";
+  var taskHtml=taskListHtml(tarefas,taskCor);
+
+  var empBorder=tx>=60?"#a8dfc8":tx>=35?"#fed7aa":"#fca5a5";
+  var empBg=tx>=60?"#e8f8f2":tx>=35?"#fff7ed":"#fef2f2";
+  var empLabel=tx>=60?"No ritmo ✓":tx>=35?"Atenção necessária":"Situação crítica";
+
+  return '<div class="gbtns">'+gBtns+'</div>'
+    +'<div class="ghdr">'
+    +'<div class="ginfo"><div class="glg" style="background:'+bg+';color:'+cor+'">'+g.ini+'</div>'
+    +'<div><div class="gnom">'+gest+'</div><div class="gcar">Gestor · Keepads · '+PL[per]+'</div></div></div>'
+    +'<div class="gkpis">'
+    +'<div class="gkpi"><div class="gkl">Em Atraso</div><div class="gkv" style="color:#e53e3e">'+d.totalAtrasado+'</div></div>'
+    +'<div class="gkpi"><div class="gkl">Vence Hoje</div><div class="gkv" style="color:#dd6b20">'+d.totalVenceHoje+'</div></div>'
+    +'<div class="gkpi"><div class="gkl">Feitas</div><div class="gkv" style="color:#1DB886">'+d.totalFeito+'</div></div>'
+    +'<div class="gkpi"><div class="gkl">Health</div><div class="gkv" style="color:'+txC+'">'+tx+'%</div></div>'
+    +'</div></div>'
+    +'<div class="empresa-health" style="border-color:'+empBorder+';background:'+empBg+';margin-bottom:14px">'
+    +'<div><div style="font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:'+txC+'">'+empLabel+'</div>'
+    +'<div style="font-size:10px;color:var(--muted);margin-top:2px">'+d.totalFeito+' feitas · '+d.totalAtrasado+' atrasadas · '+d.totalVenceHoje+' vencem hoje</div></div>'
+    +'<div style="font-size:24px;font-weight:900;color:'+txC+'">'+tx+'%</div></div>'
+    +'<div class="filter-tabs">'
+    +'<button class="ftab '+fAtClass+'" onclick="setFiltro(\'atrasado\')">🔴 Em Atraso ('+d.totalAtrasado+')</button>'
+    +'<button class="ftab '+fVhClass+'" onclick="setFiltro(\'venceHoje\')">🟠 Vence Hoje ('+d.totalVenceHoje+')</button>'
+    +'<button class="ftab '+fFtClass+'" onclick="setFiltro(\'feito\')">🟢 Feitas · '+PL[per]+' ('+d.totalFeito+')</button>'
+    +'</div>'
+    +'<div class="card"><div class="task-list">'+taskHtml+'</div></div>';
 }
 
 async function doRefresh(){
   if(busy)return;busy=true;
-  const btn=document.getElementById("btn-ref");btn.disabled=true;btn.classList.add("spin");
+  var btn=document.getElementById("btn-ref");btn.disabled=true;btn.classList.add("spin");
   setSt("Buscando dados no ClickUp…","warn");
   try{
-    const r=await fetch("/api/refresh",{
+    var r=await fetch("/api/refresh",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({periodo:per})
     });
-    if(!r.ok){const e=await r.json();throw new Error(e.error||"Erro no servidor");}
-    const parsed=await r.json();
-    if(parsed.atrasado)ST.atrasado=parsed.atrasado;
-    if(parsed.venceHoje)ST.venceHoje=parsed.venceHoje;
-    if(parsed.feito)ST.feito=parsed.feito;
+    if(!r.ok){var e=await r.json();throw new Error(e.error||"Erro no servidor");}
+    var parsed=await r.json();
+    if(parsed.gestores) DADOS=parsed.gestores;
     document.getElementById("hdr-time").textContent="Última atualização: "+fd()+" "+ft();
     setSt("Dados atualizados com sucesso ✓","ok");
     render();
@@ -310,7 +302,7 @@ async function doRefresh(){
   finally{busy=false;btn.disabled=false;btn.classList.remove("spin");}
 }
 
-function setSt(m,t){const el=document.getElementById("hdr-status");el.textContent=m;el.className="tb-status "+t;}
+function setSt(m,t){var el=document.getElementById("hdr-status");el.textContent=m;el.className="tb-status "+t;}
 </script>
 </body>
 </html>
