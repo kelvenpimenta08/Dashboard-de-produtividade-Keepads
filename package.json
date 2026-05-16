@@ -1,8 +1,0 @@
-{
-  "name": "keepads-dashboard",
-  "version": "1.0.0",
-  "description": "Dashboard de Produtividade Keepads",
-  "engines": {
-    "node": ">=18.0.0"
-  }
-}
