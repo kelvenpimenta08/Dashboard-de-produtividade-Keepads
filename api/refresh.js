@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
   if (!cuKey) return res.status(500).json({ error: 'Sem CLICKUP_API_KEY' });
 
   var payload = {
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5',
     max_tokens: 2000,
     system: 'Analise produtividade Keepads via ClickUp. Lista 901320419867.\nExecute:\n1) clickup_filter_tasks list_ids=["901320419867"] statuses=["FAZER - ROTINA JÁ"] page=0\n2) clickup_filter_tasks list_ids=["901320419867"] statuses=["FEITO"] include_closed=true date_done_from="' + from + '" date_done_to="' + to + '" page=0\n\nSome +1 por assignee. Mapeamento: "Marcos"→"Marcos Coelho" | "Pedro"→"Pedro Augusto" | "Tiago"→"Tiago Ciribeli" | "Alexandre"→"Alexandre Pires" | "Kelven"→"Kelven Pimenta" | "Ana"→"Ana Clara Rayol".\n\nRetorne APENAS este JSON puro:\n{"pend":{"Marcos Coelho":0,"Pedro Augusto":0,"Tiago Ciribeli":0,"Alexandre Pires":0,"Kelven Pimenta":0,"Ana Clara Rayol":0},"done":{"Marcos Coelho":0,"Pedro Augusto":0,"Tiago Ciribeli":0,"Alexandre Pires":0,"Kelven Pimenta":0,"Ana Clara Rayol":0}}',
     messages: [{ role: 'user', content: 'JSON agora.' }],
@@ -49,7 +49,7 @@ module.exports = async function handler(req, res) {
 
     var text = (data.content || []).filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('');
     var match = text.match(/\{[\s\S]*\}/);
-    if (!match) return res.status(200).json({ error: 'JSON invalido', raw: text.substring(0, 300) });
+    if (!match) return res.status(200).json({ error: 'JSON invalido', raw: text.substring(0, 500) });
 
     var parsed = JSON.parse(match[0]);
     parsed._debug_raw = text.substring(0, 500);
