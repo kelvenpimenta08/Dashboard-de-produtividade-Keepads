@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
 
     var data = await r.json();
 
-    if (!r.ok) return res.status(500).json({ error: 'Erro Anthropic', status: r.status, detail: data });
+    if (!r.ok) return res.status(200).json({ error: 'Erro Anthropic', status: r.status, detail: data });
 
     var text = (data.content || []).filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('');
     var match = text.match(/\{[\s\S]*\}/);
