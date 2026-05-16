@@ -21,8 +21,14 @@ module.exports = async function handler(req, res) {
   var payload = {
     model: 'claude-sonnet-4-20250514',
     max_tokens: 2000,
-    system: 'Retorne apenas este JSON sem texto adicional: {"pend":{"Marcos Coelho":5,"Pedro Augusto":3},"done":{"Marcos Coelho":2,"Pedro Augusto":1}}',
-    messages: [{ role: 'user', content: 'JSON agora.' }]
+    system: 'Analise produtividade Keepads via ClickUp. Lista 901320419867.\nExecute:\n1) clickup_filter_tasks list_ids=["901320419867"] statuses=["FAZER - ROTINA JÁ"] page=0\n2) clickup_filter_tasks list_ids=["901320419867"] statuses=["FEITO"] include_closed=true date_done_from="' + from + '" date_done_to="' + to + '" page=0\n\nSome +1 por assignee. Mapeamento: "Marcos"→"Marcos Coelho" | "Pedro"→"Pedro Augusto" | "Tiago"→"Tiago Ciribeli" | "Alexandre"→"Alexandre Pires" | "Kelven"→"Kelven Pimenta" | "Ana"→"Ana Clara Rayol".\n\nRetorne APENAS este JSON puro:\n{"pend":{"Marcos Coelho":0,"Pedro Augusto":0,"Tiago Ciribeli":0,"Alexandre Pires":0,"Kelven Pimenta":0,"Ana Clara Rayol":0},"done":{"Marcos Coelho":0,"Pedro Augusto":0,"Tiago Ciribeli":0,"Alexandre Pires":0,"Kelven Pimenta":0,"Ana Clara Rayol":0}}',
+    messages: [{ role: 'user', content: 'JSON agora.' }],
+    mcp_servers: [{
+      type: 'url',
+      url: 'https://mcp.clickup.com/mcp',
+      name: 'clickup',
+      authorization_token: cuKey
+    }]
   };
 
   try {
@@ -31,7 +37,8 @@ module.exports = async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'mcp-client-1.0'
       },
       body: JSON.stringify(payload)
     });
@@ -42,10 +49,10 @@ module.exports = async function handler(req, res) {
 
     var text = (data.content || []).filter(function(b) { return b.type === 'text'; }).map(function(b) { return b.text; }).join('');
     var match = text.match(/\{[\s\S]*\}/);
-    if (!match) return res.status(500).json({ error: 'JSON invalido', raw: text });
+    if (!match) return res.status(200).json({ error: 'JSON invalido', raw: text.substring(0, 300) });
 
     return res.status(200).json(JSON.parse(match[0]));
   } catch(e) {
-    return res.status(500).json({ error: e.message });
+    return res.status(200).json({ error: e.message });
   }
 };
