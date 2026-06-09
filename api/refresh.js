@@ -10,7 +10,7 @@ module.exports = async function handler(req, res) {
 
   var body = req.body;
   var periodo = body.periodo || 'semana';
-  var LIST_ID = '901320419867';
+  var LISTAS = ['901320419867', '901327187163', '901320419878'];
 
   var MAPA = [
     { chave: 'Marcos Coelho',                   nome: 'Marcos Coelho' },
