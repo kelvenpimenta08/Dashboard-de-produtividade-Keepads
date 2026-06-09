@@ -93,10 +93,62 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .tag{font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px}
 .task-due{font-size:11px;font-weight:800;flex-shrink:0;margin-top:2px}
 .empty{font-size:12px;color:var(--muted);text-align:center;padding:24px;font-weight:500}
+.mci-bar-wrap{background:#f0f5f2;height:20px;border-radius:10px;overflow:hidden;margin:12px 0}
+.mci-bar-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#1DB886,#0f9b6e);transition:width 1.2s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
+.mci-bar-label{font-size:10px;font-weight:800;color:#fff}
+.mci-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--sh);margin-bottom:14px}
+.mci-title{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.mci-meta{font-size:18px;font-weight:900;color:var(--text);line-height:1.3;margin-bottom:16px}
+.mci-nums{display:flex;gap:28px;margin-bottom:16px}
+.mci-num{text-align:center}
+.mci-nl{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.mci-nv{font-size:28px;font-weight:900}
+.placar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.placar-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.placar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.placar-nome{font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:8px}
+.placar-status{font-size:18px}
+.placar-pct{font-size:28px;font-weight:900;margin-bottom:4px}
+.placar-sub{font-size:10px;color:var(--muted);font-weight:500}
+.cadencia-info{font-size:10px;font-weight:700;margin-top:8px;padding:5px 8px;border-radius:6px;display:inline-block}
+.md-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:14px}
+.md-item{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1.5px solid var(--border)}
+.md-item:last-child{border-bottom:none}
+.md-num{width:28px;height:28px;border-radius:8px;background:var(--green-light);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.md-body{flex:1}
+.md-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px}
+.md-desc{font-size:11px;color:var(--muted);font-weight:500}
+.countdown{display:inline-flex;align-items:center;gap:8px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;color:var(--red)}
 .footer{background:#fff;border-top:1.5px solid var(--border);padding:14px 36px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--muted);font-weight:500;margin-top:4px}
 .flogo{height:22px}.fright{display:flex;align-items:center;gap:16px}
 .fbadge{display:inline-flex;align-items:center;gap:5px;background:var(--green-light);color:var(--green-dark);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px}
-@media(max-width:980px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}.topbar,.ctrl,.inner,.footer{padding-left:16px;padding-right:16px}}
+@media(max-width:980px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}.topbar,.ctrl,.inner,.mci-bar-wrap{background:#f0f5f2;height:20px;border-radius:10px;overflow:hidden;margin:12px 0}
+.mci-bar-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#1DB886,#0f9b6e);transition:width 1.2s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
+.mci-bar-label{font-size:10px;font-weight:800;color:#fff}
+.mci-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--sh);margin-bottom:14px}
+.mci-title{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.mci-meta{font-size:18px;font-weight:900;color:var(--text);line-height:1.3;margin-bottom:16px}
+.mci-nums{display:flex;gap:28px;margin-bottom:16px}
+.mci-num{text-align:center}
+.mci-nl{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.mci-nv{font-size:28px;font-weight:900}
+.placar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.placar-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.placar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.placar-nome{font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:8px}
+.placar-status{font-size:18px}
+.placar-pct{font-size:28px;font-weight:900;margin-bottom:4px}
+.placar-sub{font-size:10px;color:var(--muted);font-weight:500}
+.cadencia-info{font-size:10px;font-weight:700;margin-top:8px;padding:5px 8px;border-radius:6px;display:inline-block}
+.md-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:14px}
+.md-item{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1.5px solid var(--border)}
+.md-item:last-child{border-bottom:none}
+.md-num{width:28px;height:28px;border-radius:8px;background:var(--green-light);color:var(--green-dark);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.md-body{flex:1}
+.md-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px}
+.md-desc{font-size:11px;color:var(--muted);font-weight:500}
+.countdown{display:inline-flex;align-items:center;gap:8px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:800;color:var(--red)}
+.footer{padding-left:16px;padding-right:16px}}
 @media(max-width:600px){.kpi-grid{grid-template-columns:1fr 1fr}.topbar{flex-direction:column;height:auto;padding:14px 16px;gap:10px}.ctrl{flex-direction:column;height:auto;padding:10px 16px;gap:8px}.gkpis{gap:12px}.ghdr{flex-direction:column;align-items:flex-start;gap:12px}}
 </style>
 </head>
@@ -122,6 +174,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   <div class="tabs">
     <button class="tab active" id="tab-geral" onclick="setTab('geral')">Resumo Geral</button>
     <button class="tab" id="tab-gestor" onclick="setTab('gestor')">Por Gestor</button>
+    <button class="tab" id="tab-4dx" onclick="setTab('4dx')">🎯 4DX · MCI</button>
   </div>
   <div class="per-wrap">
     <span class="per-lbl">Período</span>
@@ -161,11 +214,11 @@ window.onload=()=>{
   render();
 };
 
-function setTab(t){tab=t;["geral","gestor"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));render();}
+function setTab(t){tab=t;["geral","gestor","4dx"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));render();}
 function setPer(p){per=p;["semana","mes","ano"].forEach(k=>document.getElementById("per-"+k).classList.toggle("active",k===p));doRefresh();}
 function setGest(n){gest=n;filtro="atrasado";render();}
 function setFiltro(f){filtro=f;render();}
-function render(){document.getElementById("content").innerHTML=tab==="geral"?rGeral():rGest();}
+function render(){document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():r4dx();}
 
 function tagHtml(tags){
   return (tags||[]).map(function(t){
@@ -280,6 +333,81 @@ function rGest(){
     +'<button class="ftab '+fFtClass+'" onclick="setFiltro(\'feito\')">🟢 Feitas · '+PL[per]+' ('+d.totalFeito+')</button>'
     +'</div>'
     +'<div class="card"><div class="task-list">'+taskHtml+'</div></div>';
+}
+
+function r4dx(){
+  var META_INICIO = 66;
+  var META_FIM = 90;
+  var META_DATA = new Date('2026-06-30');
+  var hoje = new Date();
+  var diasRestantes = Math.max(0, Math.ceil((META_DATA - hoje) / 86400000));
+  var diasTotais = Math.ceil((META_DATA - new Date('2026-06-09')) / 86400000);
+  var diasPassados = diasTotais - diasRestantes;
+
+  // Calcula taxa atual geral
+  var tA=0,tV=0,tF=0;
+  GESTORES.forEach(function(g){
+    var d=DADOS[g.name]||{};
+    tA+=(d.totalAtrasado||0);
+    tV+=(d.totalVenceHoje||0);
+    tF+=(d.totalFeito||0);
+  });
+  var taxaAtual = tA+tV+tF>0 ? Math.round(tF/(tA+tV+tF)*100) : 0;
+  var progresso = Math.min(100, Math.round((taxaAtual - META_INICIO) / (META_FIM - META_INICIO) * 100));
+  if (progresso < 0) progresso = 0;
+
+  // Cadência esperada hoje
+  var cadenciaHoje = META_INICIO + Math.round((META_FIM - META_INICIO) * (diasPassados / diasTotais));
+
+  var barColor = taxaAtual >= META_FIM ? '#1DB886' : taxaAtual >= cadenciaHoje ? '#1DB886' : taxaAtual >= cadenciaHoje - 5 ? '#dd6b20' : '#e53e3e';
+
+  // Placar por gestor
+  var placarHtml = GESTORES.map(function(g){
+    var d=DADOS[g.name]||{totalAtrasado:0,totalVenceHoje:0,totalFeito:0};
+    var tot=d.totalAtrasado+d.totalVenceHoje+d.totalFeito;
+    var h=tot>0?Math.round(d.totalFeito/tot*100):100;
+    var ganhando = h >= cadenciaHoje;
+    var cor = h >= 85 ? '#1DB886' : h >= 65 ? '#dd6b20' : '#e53e3e';
+    var status = h >= META_FIM ? '🏆' : ganhando ? '🟢' : '🔴';
+    var cadLabel = ganhando ? 'Acima da cadência' : 'Abaixo da cadência';
+    var cadBg = ganhando ? 'background:#e8f8f2;color:#0f9b6e' : 'background:#fef2f2;color:#e53e3e';
+    return '<div class="placar-card">'
+      +'<div class="placar-top"><div class="placar-nome"><span class="ava" style="background:'+CBG[g.name]+';color:'+COR[g.name]+'">'+GESTORES.find(function(x){return x.name===g.name;}).ini+'</span>'+g.name.split(" ")[0]+'</div><span class="placar-status">'+status+'</span></div>'
+      +'<div class="placar-pct" style="color:'+cor+'">'+h+'%</div>'
+      +'<div class="placar-sub">'+d.totalFeito+' feitas · '+(d.totalAtrasado+d.totalVenceHoje)+' pendentes</div>'
+      +'<div class="cadencia-info" style="'+cadBg+'">'+cadLabel+' (meta: '+cadenciaHoje+'%)</div>'
+      +'</div>';
+  }).join('');
+
+  return '<div class="mci-card">'
+    +'<div class="mci-title">🎯 Meta Crucialmente Importante — 4DX</div>'
+    +'<div class="mci-meta">"Elevar a taxa de execução de tarefas dos gestores de 66% para 90% até 30/06/2026"</div>'
+    +'<div class="mci-nums">'
+    +'<div class="mci-num"><div class="mci-nl">Início</div><div class="mci-nv" style="color:var(--muted)">66%</div></div>'
+    +'<div class="mci-num"><div class="mci-nl">Atual</div><div class="mci-nv" style="color:'+barColor+'">'+taxaAtual+'%</div></div>'
+    +'<div class="mci-num"><div class="mci-nl">Meta</div><div class="mci-nv" style="color:#1DB886">90%</div></div>'
+    +'<div class="mci-num"><div class="mci-nl">Cadência Hoje</div><div class="mci-nv" style="color:#dd6b20">'+cadenciaHoje+'%</div></div>'
+    +'</div>'
+    +'<div class="mci-bar-wrap"><div class="mci-bar-fill" style="width:'+progresso+'%;background:'+barColor+'"><span class="mci-bar-label">'+taxaAtual+'%</span></div></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">'
+    +'<span style="font-size:11px;color:var(--muted);font-weight:500">Progresso: '+progresso+'% do caminho percorrido</span>'
+    +'<span class="countdown">⏳ '+diasRestantes+' dias restantes</span>'
+    +'</div></div>'
+    +'<div class="ctit" style="margin-bottom:10px"><span class="cdot" style="background:#6d48d6"></span>PLACAR — Situação de cada gestor</div>'
+    +'<div class="placar-grid">'+placarHtml+'</div>'
+    +'<div class="md-card"><div class="ctit"><span class="cdot" style="background:#dd6b20"></span>Medidas de Direção — Lead Measures semanais</div>'
+    +'<div class="md-item"><div class="md-num">MD1</div><div class="md-body"><div class="md-label">Zerar tarefas em atraso antes de sexta-feira</div><div class="md-desc">Cada gestor deve resolver todas as tarefas em atraso e vencendo hoje até o final de cada semana. Meta: 0 tarefas em atraso na sexta.</div></div></div>'
+    +'<div class="md-item"><div class="md-num">MD2</div><div class="md-body"><div class="md-label">Reunião de MCI toda segunda-feira (20 min)</div><div class="md-desc">Cada gestor apresenta: o que me comprometi → o que entreguei → o que farei essa semana. Proibido entrar em operacional.</div></div></div>'
+    +'</div>'
+    +'<div class="card" style="background:#fffbeb;border-color:#fed7aa">'
+    +'<div class="ctit"><span class="cdot" style="background:#c08a0e"></span>Estrutura da Reunião de MCI — toda segunda, 20 min</div>'
+    +'<div style="font-size:12px;color:var(--text2);line-height:2">'
+    +'<strong>1.</strong> Abertura: "Nossa MCI é elevar execução de 66% para 90% até 30/06" (2 min)<br>'
+    +'<strong>2.</strong> Cada gestor (2 min cada): compromisso passado → entrega → placar → próximo compromisso<br>'
+    +'<strong>3.</strong> Líder remove obstáculos identificados — não pune, remove bloqueios<br>'
+    +'<strong>4.</strong> Celebração: quem bateu a cadência essa semana?<br>'
+    +'<strong>⚠️ Regra:</strong> redemoinho é proibido nessa reunião — tem reunião separada para isso'
+    +'</div></div>';
 }
 
 async function doRefresh(){
