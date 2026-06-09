@@ -12,14 +12,13 @@ module.exports = async function handler(req, res) {
   var periodo = body.periodo || 'semana';
   var LIST_ID = '901320419867';
 
-  // Mapeamento exato dos nomes do ClickUp para nomes do dashboard
   var MAPA = [
-    { chave: 'Marcos Coelho',                    nome: 'Marcos Coelho' },
-    { chave: 'Pedro Augusto de Novaes Barreto',  nome: 'Pedro Augusto' },
-    { chave: 'Tiago Ciribeli',                   nome: 'Tiago Ciribeli' },
-    { chave: 'Alexandre Pires dias',             nome: 'Alexandre Pires' },
-    { chave: 'Kelven Pimenta',                   nome: 'Kelven Pimenta' },
-    { chave: 'Ana Clara Rayol',                  nome: 'Ana Clara Rayol' }
+    { chave: 'Marcos Coelho',                   nome: 'Marcos Coelho' },
+    { chave: 'Pedro Augusto de Novaes Barreto', nome: 'Pedro Augusto' },
+    { chave: 'Tiago Ciribeli',                  nome: 'Tiago Ciribeli' },
+    { chave: 'Alexandre Pires dias',            nome: 'Alexandre Pires' },
+    { chave: 'Kelven Pimenta',                  nome: 'Kelven Pimenta' },
+    { chave: 'Ana Clara Rayol',                 nome: 'Ana Clara Rayol' }
   ];
 
   var GESTORES = ['Marcos Coelho','Pedro Augusto','Tiago Ciribeli','Alexandre Pires','Kelven Pimenta','Ana Clara Rayol'];
@@ -63,11 +62,13 @@ module.exports = async function handler(req, res) {
   function addTask(nome, taskInfo, tipo) {
     if (!resultado[nome]) return;
     resultado[nome][tipo].push(taskInfo);
-    resultado[nome]['total' + tipo.charAt(0).toUpperCase() + tipo.slice(1)]++;
+    if (tipo==='atrasado') resultado[nome].totalAtrasado++;
+    else if (tipo==='venceHoje') resultado[nome].totalVenceHoje++;
+    else if (tipo==='noPrazo') resultado[nome].totalNoPrazo++;
+    else if (tipo==='feito') resultado[nome].totalFeito++;
   }
 
   try {
-    // Busca tarefas abertas — todas as páginas
     var allOpen = [];
     var page = 0;
     var hasMore = true;
@@ -82,7 +83,6 @@ module.exports = async function handler(req, res) {
       if (page > 20) break;
     }
 
-    // Classifica por due date
     allOpen.forEach(function(task) {
       var status = task.status && task.status.status ? task.status.status.toLowerCase() : '';
       if (status === 'feito') return;
@@ -104,7 +104,6 @@ module.exports = async function handler(req, res) {
       });
     });
 
-    // Busca tarefas FEITAS no período
     page = 0; hasMore = true;
     while (hasMore) {
       var urlDone = 'https://api.clickup.com/api/v2/list/' + LIST_ID + '/task?statuses[]=feito&include_closed=true&date_done_gt=' + range.from + '&date_done_lt=' + range.to + '&page=' + page + '&limit=100';
