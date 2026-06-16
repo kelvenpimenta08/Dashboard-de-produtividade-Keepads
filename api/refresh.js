@@ -19,10 +19,11 @@ module.exports = async function handler(req, res) {
     { chave: 'Tiago Ciribeli',                  nome: 'Tiago Ciribeli' },
     { chave: 'Alexandre Pires dias',            nome: 'Alexandre Pires' },
     { chave: 'Kelven Pimenta',                  nome: 'Kelven Pimenta' },
-    { chave: 'Ana Clara Rayol',                 nome: 'Ana Clara Rayol' }
+    { chave: 'Ana Clara Rayol',                 nome: 'Ana Clara Rayol' },
+    { chave: 'Enzo Santos Paiva',               nome: 'Enzo Santos Paiva' }
   ];
 
-  var GESTORES = ['Marcos Coelho','Pedro Augusto','Tiago Ciribeli','Alexandre Pires','Kelven Pimenta','Ana Clara Rayol'];
+  var GESTORES = ['Marcos Coelho','Pedro Augusto','Tiago Ciribeli','Alexandre Pires','Kelven Pimenta','Ana Clara Rayol','Enzo Santos Paiva'];
 
   function mapNome(fullName) {
     if (!fullName) return null;
