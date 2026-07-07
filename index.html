@@ -40,7 +40,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .ctrl{background:#fff;border-bottom:1px solid var(--border);padding:0 36px;display:flex;justify-content:space-between;align-items:center;height:52px}
 .tabs{display:flex;height:100%}
-.tab{display:inline-flex;align-items:center;padding:0 22px;font-family:var(--font);font-size:11px;font-weight:800;letter-spacing:.07em;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;transition:.15s;text-transform:uppercase;height:100%}
+.tab{display:inline-flex;align-items:center;white-space:nowrap;padding:0 16px;font-family:var(--font);font-size:11px;font-weight:800;letter-spacing:.06em;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;transition:.15s;text-transform:uppercase;height:100%}
 .tab.active{color:var(--green);border-bottom-color:var(--green)}
 .per-wrap{display:flex;align-items:center;gap:7px}
 .per-lbl{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-right:4px}
@@ -82,13 +82,37 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .chart-plot{position:relative;height:190px;display:flex;align-items:flex-end;gap:12px;border-bottom:2px solid var(--border2);margin-top:26px}
 .chart-meta{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--border2);pointer-events:none}
 .chart-meta span{position:absolute;right:2px;top:-14px;font-size:9px;font-weight:700;color:var(--muted);background:#fff;padding:0 6px;letter-spacing:.03em}
-.chart-col{flex:1;height:100%;display:flex;align-items:flex-end;justify-content:center}
-.chart-bar{position:relative;width:100%;max-width:46px;border-radius:6px 6px 0 0;min-height:4px;transition:height 1s cubic-bezier(.4,0,.2,1)}
-.chart-bar:hover{filter:brightness(.95)}
+.chart-col{flex:1;height:100%;display:flex;align-items:flex-end;justify-content:center;position:relative;cursor:pointer}
+.chart-bar{position:relative;width:100%;max-width:46px;border-radius:6px 6px 0 0;min-height:4px;transition:height 1s cubic-bezier(.4,0,.2,1),filter .15s ease}
+.chart-col:hover .chart-bar{filter:brightness(.94)}
+.chart-pop{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%) translateY(5px);width:190px;background:#fff;border:1px solid var(--border);border-radius:13px;box-shadow:0 10px 30px rgba(20,36,29,.16);padding:13px 15px;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:60}
+.chart-col:hover .chart-pop{opacity:1;transform:translateX(-50%) translateY(0)}
+.chart-pop::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:7px solid transparent;border-top-color:#fff;filter:drop-shadow(0 1px 0 var(--border))}
+.pop-head{display:flex;align-items:center;gap:9px;margin-bottom:11px;padding-bottom:11px;border-bottom:1px solid var(--border)}
+.pop-name{font-family:var(--head);font-weight:700;font-size:13.5px;color:var(--text)}
+.pop-pct{margin-left:auto;font-family:var(--head);font-variant-numeric:tabular-nums;font-weight:700;font-size:12px;padding:3px 10px;border-radius:999px}
+.pop-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text2);padding:4px 0}
+.pop-row>span{display:inline-flex;align-items:center}
+.pop-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:9px;flex-shrink:0}
+.pop-row b{font-family:var(--head);font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px;color:var(--text)}
 .chart-val{position:absolute;top:-19px;left:0;right:0;text-align:center;font-family:var(--head);font-variant-numeric:tabular-nums;font-size:12px;font-weight:700}
 .chart-xrow{display:flex;gap:12px;padding-top:11px}
 .chart-xcell{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
 .chart-xname{font-size:10px;color:var(--text2);font-weight:600}
+.intel-item{display:flex;gap:13px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--border)}
+.intel-item:first-child{padding-top:2px}
+.intel-item:last-child{border-bottom:none;padding-bottom:2px}
+.intel-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.intel-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.intel-h{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.intel-d{font-size:11.5px;color:var(--muted);line-height:1.55}
+.intel-stat{text-align:center;padding:4px 0}
+.intel-stat .n{font-family:var(--head);font-variant-numeric:tabular-nums;font-size:36px;font-weight:700;line-height:1}
+.intel-stat .l{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:7px}
+.faixa-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+.faixa-row:last-child{border-bottom:none}
+.faixa-pill{font-family:var(--head);font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;min-width:110px;text-align:center;flex-shrink:0}
+.faixa-txt{font-size:12px;color:var(--text2);line-height:1.5}
 .empresa-health{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:8px;margin-top:14px;border:1.5px solid}
 .gbtns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .gbtn{padding:7px 16px 7px 8px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);border-radius:999px;transition:.14s;display:flex;align-items:center;gap:7px;box-shadow:var(--sh)}
@@ -234,7 +258,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
   <div class="tabs">
     <button class="tab active" id="tab-geral" onclick="setTab('geral')">Resumo Geral</button>
     <button class="tab" id="tab-gestor" onclick="setTab('gestor')">Por Gestor</button>
-    <button class="tab" id="tab-4dx" onclick="setTab('4dx')">🎯 4DX · MCI</button>
+    <button class="tab" id="tab-4dx" onclick="setTab('4dx')">4DX · MCI</button>
+    <button class="tab" id="tab-intel" onclick="setTab('intel')">Inteligência</button>
   </div>
   <div class="per-wrap">
     <span class="per-lbl">Período</span>
@@ -282,7 +307,7 @@ window.onload=()=>{
   render();
 };
 
-function setTab(t){tab=t;["geral","gestor","4dx"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));render();}
+function setTab(t){tab=t;["geral","gestor","4dx","intel"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));render();}
 function setPer(p){
   ["semana","mes","ano","custom"].forEach(k=>document.getElementById("per-"+k).classList.toggle("active",k===p));
   document.getElementById("custom-range").style.display=p==="custom"?"inline-flex":"none";
@@ -313,7 +338,7 @@ function updateHeaderTaxa(){
   el.textContent=tx+"%";
   el.style.color=hC(tx);
 }
-function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():r4dx();}
+function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():rIntel();}
 
 function tagHtml(tags){
   return (tags||[]).map(function(t){
@@ -364,7 +389,14 @@ function rGeral(){
     var tot=d.totalAtrasado+d.totalVenceHoje+d.totalFeito;
     var h=tot>0?Math.round(d.totalFeito/tot*100):100;
     var hc=hC(h);
-    return '<div class="chart-col"><div class="chart-bar" title="'+g.name.split(" ")[0]+': '+h+'%" style="height:'+h+'%;background:'+hc+'"><span class="chart-val" style="color:'+hc+'">'+h+'%</span></div></div>';
+    var hBg=h>=60?'#e8f8f2':h>=35?'#fff7ed':'#fef2f2';
+    var pop='<div class="chart-pop">'
+      +'<div class="pop-head"><span class="ava" style="background:'+CBG[g.name]+';color:'+COR[g.name]+'">'+g.ini+'</span><span class="pop-name">'+g.name.split(" ")[0]+'</span><span class="pop-pct" style="background:'+hBg+';color:'+hc+'">'+h+'%</span></div>'
+      +'<div class="pop-row"><span><span class="pop-dot" style="background:#1dd1a1"></span>Feitas</span><b>'+d.totalFeito+'</b></div>'
+      +'<div class="pop-row"><span><span class="pop-dot" style="background:#ff3b30"></span>Em atraso</span><b>'+d.totalAtrasado+'</b></div>'
+      +'<div class="pop-row"><span><span class="pop-dot" style="background:#ff6d00"></span>Vencem hoje</span><b>'+d.totalVenceHoje+'</b></div>'
+      +'</div>';
+    return '<div class="chart-col"><div class="chart-bar" style="height:'+h+'%;background:'+hc+'"><span class="chart-val" style="color:'+hc+'">'+h+'%</span></div>'+pop+'</div>';
   }).join("");
   var chartX=GESTORES.map(function(g){
     return '<div class="chart-xcell"><span class="ava" style="background:'+CBG[g.name]+';color:'+COR[g.name]+'">'+g.ini+'</span><span class="chart-xname">'+g.name.split(" ")[0]+'</span></div>';
@@ -434,9 +466,9 @@ function rGest(){
     +'<div class="gkpi"><div class="gkl">Saúde</div><div class="gkv" style="color:'+txC+'">'+tx+'%</div></div>'
     +'</div></div>'
     +'<div class="filter-tabs">'
-    +'<button class="ftab '+fAtClass+'" onclick="setFiltro(\'atrasado\')">🔴 Em Atraso ('+d.totalAtrasado+')</button>'
-    +'<button class="ftab '+fVhClass+'" onclick="setFiltro(\'venceHoje\')">🟠 Vence Hoje ('+d.totalVenceHoje+')</button>'
-    +'<button class="ftab '+fFtClass+'" onclick="setFiltro(\'feito\')">🟢 Feitas · '+PL[per]+' ('+d.totalFeito+')</button>'
+    +'<button class="ftab '+fAtClass+'" onclick="setFiltro(\'atrasado\')">Em Atraso ('+d.totalAtrasado+')</button>'
+    +'<button class="ftab '+fVhClass+'" onclick="setFiltro(\'venceHoje\')">Vence Hoje ('+d.totalVenceHoje+')</button>'
+    +'<button class="ftab '+fFtClass+'" onclick="setFiltro(\'feito\')">Feitas · '+PL[per]+' ('+d.totalFeito+')</button>'
     +'</div>'
     +taskHtml;
 }
@@ -503,7 +535,7 @@ function r4dx(){
   var stLabel = batida ? '✓ META BATIDA' : 'META NÃO BATIDA';
 
   return '<div class="mci-card">'
-    +'<div class="mci-title">🎯 Meta Crucialmente Importante · 4DX · '+PL[per]+'</div>'
+    +'<div class="mci-title">Meta Crucialmente Importante · 4DX · '+PL[per]+'</div>'
     +'<div class="mci-meta">"Manter a taxa de execução de tarefas dos gestores em 90% ou mais."</div>'
     +'<div class="mci-nums">'
     +'<div class="mci-num"><div class="mci-nl">Taxa Atual</div><div class="mci-nv" style="color:'+barColor+'">'+taxaAtual+'%</div></div>'
@@ -530,8 +562,135 @@ function r4dx(){
     +'<div class="reu-step"><span class="reu-num">3</span><div class="reu-body"><div class="reu-label">Remoção de obstáculos</div><div class="reu-desc">O líder remove os bloqueios identificados. Não pune, destrava.</div></div></div>'
     +'<div class="reu-step"><span class="reu-num">4</span><div class="reu-body"><div class="reu-label">Celebração</div><div class="reu-desc">Quem bateu a cadência essa semana?</div></div></div>'
     +'</div>'
-    +'<div class="reu-regra"><strong>⚠️ Regra:</strong> redemoinho é proibido nessa reunião. Tem reunião separada para isso.</div>'
+    +'<div class="reu-regra"><strong>Regra:</strong> redemoinho é proibido nessa reunião. Tem reunião separada para isso.</div>'
     +'</div>';
+}
+
+function rIntel(){
+  var tA=0,tV=0,tF=0;
+  GESTORES.forEach(function(g){var d=DADOS[g.name]||{};tA+=d.totalAtrasado||0;tV+=d.totalVenceHoje||0;tF+=d.totalFeito||0;});
+  var pend=tA+tV, tudo=tF+pend;
+  var taxa=tudo>0?Math.round(tF/tudo*100):0;
+  var taxaC=hC(taxa);
+  var temDados=GESTORES.some(function(g){return DADOS[g.name];});
+
+  var gData=GESTORES.map(function(g){
+    var d=DADOS[g.name]||{totalAtrasado:0,totalVenceHoje:0,totalFeito:0};
+    var tot=d.totalAtrasado+d.totalVenceHoje+d.totalFeito;
+    var h=tot>0?Math.round(d.totalFeito/tot*100):0;
+    return {g:g,h:h,d:d,tot:tot};
+  });
+  var comDados=gData.filter(function(x){return x.tot>0;});
+  var ranked=comDados.slice().sort(function(a,b){return b.h-a.h;});
+  var melhor=ranked[0], pior=ranked[ranked.length-1];
+  var noRitmo=comDados.filter(function(x){return x.h>=90;});
+  var atencao=comDados.filter(function(x){return x.h>=60&&x.h<90;});
+  var criticos=comDados.filter(function(x){return x.h<60;});
+  var comAtraso=gData.filter(function(x){return x.d.totalAtrasado>0;});
+
+  var stLabel,stNarr;
+  if(taxa>=90){stLabel="Meta batida · no ritmo";stNarr="A empresa concluiu "+taxa+"% das tarefas do período, dentro ou acima da meta de 90%. O foco agora é manter o padrão e não deixar os pendentes voltarem a acumular.";}
+  else if(taxa>=60){stLabel="No ritmo, abaixo da meta";stNarr="A execução está em "+taxa+"%: saudável, mas ainda abaixo da meta de 90%. Zerar os "+pend+" pendentes (sendo "+tA+" já em atraso) é o caminho mais rápido para subir a taxa.";}
+  else{stLabel="Situação crítica";stNarr="A execução está em "+taxa+"%, abaixo do saudável. São "+tA+" tarefas em atraso puxando o resultado para baixo. Prioridade máxima em destravar antes de assumir tarefas novas.";}
+
+  // ===== Diagnóstico =====
+  var diag='<div class="card" style="border-left:4px solid '+taxaC+';margin-bottom:14px">'
+    +'<div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Diagnóstico da empresa · '+PL[per]+'</div>';
+  if(!temDados){
+    diag+='<div class="empty">Clique em “Atualizar Agora” para carregar os dados e ver o diagnóstico. As explicações abaixo valem para qualquer período.</div></div>';
+  }else{
+    diag+='<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">'
+      +'<div style="font-family:var(--head);font-variant-numeric:tabular-nums;font-size:54px;font-weight:700;line-height:1;color:'+taxaC+'">'+taxa+'%</div>'
+      +'<div style="flex:1;min-width:240px">'
+      +'<div style="font-size:14px;font-weight:800;color:'+taxaC+';margin-bottom:6px">'+stLabel+'</div>'
+      +'<div style="font-size:12.5px;color:var(--text2);line-height:1.6">'+stNarr+'</div>'
+      +'</div></div>'
+      +'<div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">'
+      +'<div><span style="font-family:var(--head);font-weight:700;font-size:16px;color:#1dd1a1">'+tF+'</span> <span style="font-size:11px;color:var(--muted)">feitas</span></div>'
+      +'<div><span style="font-family:var(--head);font-weight:700;font-size:16px;color:#ff3b30">'+tA+'</span> <span style="font-size:11px;color:var(--muted)">em atraso</span></div>'
+      +'<div><span style="font-family:var(--head);font-weight:700;font-size:16px;color:#ff6d00">'+tV+'</span> <span style="font-size:11px;color:var(--muted)">vencem hoje</span></div>'
+      +'<div><span style="font-family:var(--head);font-weight:700;font-size:16px;color:var(--text)">'+tudo+'</span> <span style="font-size:11px;color:var(--muted)">no total</span></div>'
+      +'</div></div>';
+  }
+
+  // ===== Distribuição dos gestores =====
+  var distrib='';
+  if(temDados){
+    distrib='<div class="g3">'
+      +'<div class="card"><div class="intel-stat"><div class="n" style="color:#1dd1a1">'+noRitmo.length+'</div><div class="l">No ritmo · ≥90%</div></div></div>'
+      +'<div class="card"><div class="intel-stat"><div class="n" style="color:#ff6d00">'+atencao.length+'</div><div class="l">Atenção · 60 a 89%</div></div></div>'
+      +'<div class="card"><div class="intel-stat"><div class="n" style="color:#ff3b30">'+criticos.length+'</div><div class="l">Críticos · abaixo de 60%</div></div></div>'
+      +'</div>';
+  }
+
+  // ===== Destaques =====
+  var destaques='';
+  if(temDados && melhor){
+    var mColor=hC(melhor.h), pColor=hC(pior.h);
+    destaques='<div class="g2">'
+      +'<div class="card"><div class="ctit"><span class="cdot" style="background:#1dd1a1"></span>Destaque do período</div>'
+      +'<div style="display:flex;align-items:center;gap:12px"><span class="ava" style="width:38px;height:38px;font-size:12px;background:'+CBG[melhor.g.name]+';color:'+COR[melhor.g.name]+'">'+melhor.g.ini+'</span>'
+      +'<div><div style="font-family:var(--head);font-weight:700;font-size:16px">'+melhor.g.name.split(" ")[0]+'</div><div style="font-size:11px;color:var(--muted)">'+melhor.d.totalFeito+' feitas · '+(melhor.d.totalAtrasado+melhor.d.totalVenceHoje)+' pendentes</div></div>'
+      +'<div style="margin-left:auto;font-family:var(--head);font-variant-numeric:tabular-nums;font-size:30px;font-weight:700;color:'+mColor+'">'+melhor.h+'%</div></div>'
+      +'<div style="font-size:11.5px;color:var(--text2);margin-top:12px;line-height:1.55">É quem mais está puxando o resultado para cima. Boa referência de rotina para os demais.</div></div>'
+      +'<div class="card"><div class="ctit"><span class="cdot" style="background:#ff3b30"></span>Precisa de atenção</div>'
+      +'<div style="display:flex;align-items:center;gap:12px"><span class="ava" style="width:38px;height:38px;font-size:12px;background:'+CBG[pior.g.name]+';color:'+COR[pior.g.name]+'">'+pior.g.ini+'</span>'
+      +'<div><div style="font-family:var(--head);font-weight:700;font-size:16px">'+pior.g.name.split(" ")[0]+'</div><div style="font-size:11px;color:var(--muted)">'+pior.d.totalFeito+' feitas · '+(pior.d.totalAtrasado+pior.d.totalVenceHoje)+' pendentes</div></div>'
+      +'<div style="margin-left:auto;font-family:var(--head);font-variant-numeric:tabular-nums;font-size:30px;font-weight:700;color:'+pColor+'">'+pior.h+'%</div></div>'
+      +'<div style="font-size:11.5px;color:var(--text2);margin-top:12px;line-height:1.55">'+(criticos.length>1?'Junto de outros '+(criticos.length-1)+' abaixo de 60%. ':'')+'Vale entender o bloqueio na reunião de MCI e apoiar para destravar.</div></div>'
+      +'</div>';
+  }
+
+  // ===== Recomendações =====
+  var recs=[];
+  if(temDados){
+    if(comAtraso.length>0) recs.push({c:'#ff3b30',t:'Zerar os atrasos primeiro',d:tA+' tarefa(s) em atraso em '+comAtraso.length+' gestor(es). É o que mais derruba a taxa. Alvo: chegar na sexta com 0 atrasos.'});
+    if(tV>0) recs.push({c:'#ff6d00',t:'Fechar o que vence hoje',d:tV+' tarefa(s) vencem hoje. Resolver antes do fim do dia evita que virem atraso amanhã.'});
+    if(criticos.length>0) recs.push({c:'#6d48d6',t:'Apoiar quem está crítico',d:'Abaixo de 60%: '+criticos.map(function(x){return x.g.name.split(" ")[0];}).join(", ")+'. Entender o bloqueio na reunião de MCI.'});
+    if(taxa>0&&taxa<90) recs.push({c:'#15a883',t:'Faltam '+(90-taxa)+' pontos para a meta',d:'A meta é 90% de execução. Subir exige concluir pendências sem gerar novas no lugar.'});
+    if(taxa>=90) recs.push({c:'#15a883',t:'Meta batida, manter o ritmo',d:'A empresa está em '+taxa+'%. Segurar o padrão e não deixar pendências acumularem.'});
+    if(recs.length===0) recs.push({c:'#15a883',t:'Tudo em dia',d:'Sem atrasos e sem vencimentos hoje. É seguir o fluxo.'});
+  }
+  var recsHtml='';
+  if(recs.length){
+    recsHtml='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#1dd1a1"></span>Recomendações · o que fazer agora</div>'
+      +recs.map(function(r){return '<div class="intel-item"><span class="intel-dot" style="background:'+r.c+'"></span><div><div class="intel-h">'+r.t+'</div><div class="intel-d">'+r.d+'</div></div></div>';}).join("")
+      +'</div>';
+  }
+
+  // ===== O que cada número significa =====
+  var defs=[
+    {c:'#ff3b30',t:'Em Atraso',d:'Tarefas com prazo já vencido e ainda não concluídas. É o indicador mais urgente: quanto maior, pior a saúde.'},
+    {c:'#ff6d00',t:'Vence Hoje',d:'Tarefas cujo prazo termina até o fim do dia de hoje. Se não fechadas, viram atraso amanhã.'},
+    {c:'#1dd1a1',t:'Feitas',d:'Tarefas concluídas dentro do período selecionado (semana, mês, ano ou personalizado).'},
+    {c:'#6d48d6',t:'Taxa de Execução',d:'Feitas ÷ (Feitas + Pendentes). É a nota geral: quanto do que estava na mesa foi entregue.'},
+    {c:'#2b6cb0',t:'Saúde (por gestor / empresa)',d:'A mesma taxa de execução aplicada a cada pessoa e ao todo. Colorida pela faixa de saúde.'},
+    {c:'#c08a0e',t:'Meta (MCI)',d:'O alvo do 4DX: manter a taxa de execução em 90% ou mais no período. O selo mostra se foi batida.'}
+  ];
+  var defsHtml='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Como ler os números</div>'
+    +defs.map(function(x){return '<div class="intel-item"><span class="intel-dot" style="background:'+x.c+'"></span><div><div class="intel-h">'+x.t+'</div><div class="intel-d">'+x.d+'</div></div></div>';}).join("")
+    +'</div>';
+
+  // ===== Faixas de saúde =====
+  var faixas='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#ff6d00"></span>Faixas de saúde · o que cada cor significa</div>'
+    +'<div class="faixa-row"><span class="faixa-pill" style="background:#e8f8f2;color:#15a883">Verde · ≥ 60%</span><span class="faixa-txt">No ritmo. A pessoa ou a empresa está entregando a maior parte das tarefas.</span></div>'
+    +'<div class="faixa-row"><span class="faixa-pill" style="background:#fff7ed;color:#ff6d00">Laranja · 35 a 59%</span><span class="faixa-txt">Atenção. Metade ou menos está saindo; começa a acumular pendência.</span></div>'
+    +'<div class="faixa-row"><span class="faixa-pill" style="background:#fef2f2;color:#ff3b30">Vermelho · < 35%</span><span class="faixa-txt">Crítico. A maior parte não está sendo concluída; precisa de intervenção.</span></div>'
+    +'<div class="faixa-row"><span class="faixa-pill" style="background:#f3efff;color:#6d48d6">Meta · 90%</span><span class="faixa-txt">O alvo da MCI. Acima disso, a meta do período está batida.</span></div>'
+    +'</div>';
+
+  // ===== Guia das abas =====
+  var abas=[
+    {c:'#1dd1a1',t:'Resumo Geral',d:'A visão da empresa: saúde geral, os quatro números-chave, o comparativo de cada gestor (em atraso, vence hoje, feitas) e o gráfico de saúde por gestor.'},
+    {c:'#2b6cb0',t:'Por Gestor',d:'O mergulho em uma pessoa: seus números, e a lista de tarefas em atraso, vencendo hoje ou feitas, com filtro e prazos.'},
+    {c:'#ff6d00',t:'4DX · MCI',d:'A meta crucial e se foi batida no período, o placar com o ranking dos gestores, as medidas de direção e o roteiro da reunião de MCI.'},
+    {c:'#6d48d6',t:'Inteligência',d:'Esta aba: junta os dados num diagnóstico, aponta destaques e recomendações, e explica o que cada número e cor querem dizer.'}
+  ];
+  var abasHtml='<div class="card"><div class="ctit"><span class="cdot" style="background:#2b6cb0"></span>Guia das abas · o que tem em cada uma</div>'
+    +abas.map(function(x){return '<div class="intel-item"><span class="intel-dot" style="background:'+x.c+'"></span><div><div class="intel-h">'+x.t+'</div><div class="intel-d">'+x.d+'</div></div></div>';}).join("")
+    +'</div>';
+
+  return diag+distrib+destaques+recsHtml+defsHtml+faixas+abasHtml;
 }
 
 async function doRefresh(){
