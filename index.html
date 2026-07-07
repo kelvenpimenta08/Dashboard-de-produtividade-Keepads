@@ -50,6 +50,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .custom-range{display:inline-flex;align-items:center;gap:7px}
 .dt-inp{font-family:var(--font);font-size:11px;font-weight:600;color:var(--text2);padding:6px 10px;border:1px solid var(--border2);border-radius:20px;background:#fff;cursor:pointer}
 .dt-inp:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--brand-soft)}
+.cbanner{display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#fff,var(--brand-soft));border:1px solid #cdeede;border-radius:var(--r);padding:11px 16px;margin-bottom:14px;flex-wrap:wrap;box-shadow:var(--sh)}
+.cbanner-tag{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--green-dark);background:#fff;border:1px solid #cdeede;border-radius:999px;padding:4px 11px;white-space:nowrap}
+.cbanner-txt{font-size:12px;color:var(--text2);line-height:1.5}
+.cbanner-txt b{font-weight:700;color:var(--text)}
+.cbanner-muted{color:var(--muted)}
 .inner{padding:26px 36px;flex:1 0 auto}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:.18s;cursor:default}
@@ -338,7 +343,14 @@ function updateHeaderTaxa(){
   el.textContent=tx+"%";
   el.style.color=hC(tx);
 }
-function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():rIntel();}
+function customBanner(){
+  if(per!=="custom"||!customFrom||!customTo) return "";
+  return '<div class="cbanner">'
+    +'<span class="cbanner-tag">PERÍODO PERSONALIZADO</span>'
+    +'<span class="cbanner-txt"><b>'+PL.custom+'</b> · o número de <b>Feitas</b> mostra as tarefas concluídas nesse intervalo. <span class="cbanner-muted">Em atraso e Vence hoje mostram a situação atual, não o período.</span></span>'
+    +'</div>';
+}
+function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=customBanner()+(tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():rIntel());}
 
 function tagHtml(tags){
   return (tags||[]).map(function(t){
