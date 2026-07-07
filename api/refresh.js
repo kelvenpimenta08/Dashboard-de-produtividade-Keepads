@@ -34,6 +34,11 @@ module.exports = async function handler(req, res) {
   }
 
   function getRange(periodo) {
+    if (periodo === 'custom' && body.from && body.to) {
+      var cf = new Date(body.from + 'T00:00:00');
+      var ct = new Date(body.to + 'T23:59:59.999');
+      return { from: cf.getTime(), to: ct.getTime() };
+    }
     var now = new Date();
     var from, to;
     if (periodo === 'semana') {
