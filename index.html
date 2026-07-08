@@ -57,6 +57,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .cbanner-muted{color:var(--muted)}
 .hist-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;box-shadow:var(--sh)}
 .hist-vsep{width:1px;height:22px;background:var(--border2);margin:0 4px}
+.hrow-click{cursor:pointer;border-radius:9px;transition:background .14s;padding:7px 8px;margin:0 -8px 7px}
+.hrow-click:hover{background:#f4faf8}
+.hrow-click.on{background:var(--brand-soft);box-shadow:inset 0 0 0 1px #cdeede}
+.hist-list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.hist-clear{appearance:none;border:1px solid var(--border2);background:#fff;color:var(--text2);font-family:var(--font);font-size:11px;font-weight:700;padding:5px 13px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.hist-clear:hover{border-color:var(--green);color:var(--green-dark)}
 .inner{padding:26px 36px;flex:1 0 auto}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:.18s;cursor:default}
@@ -298,7 +304,7 @@ const hC=h=>h>=60?"#1dd1a1":h>=35?"#ff6d00":"#ff3b30";
 
 let DADOS={},HIST={};
 let tab="geral",per="semana",gest="Marcos Coelho",filtro="atrasado",busy=false;
-let histFrom="",histTo="",histLabel="",histBusy=false,histLoaded=false;
+let histFrom="",histTo="",histLabel="",histBusy=false,histLoaded=false,histGest="";
 const fd=()=>new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"});
 const ft=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 
@@ -330,10 +336,11 @@ function histApply(){
   if(f>t){setSt("A data inicial é maior que a final.","warn");return;}
   histFrom=f;histTo=t;loadHist();
 }
+function setHistGest(n){histGest=(histGest===n?"":n);render();}
 async function loadHist(){
   if(!histFrom||!histTo)return;
   histLabel=fmtBR(histFrom)+" a "+fmtBR(histTo);
-  histBusy=true;histLoaded=false;render();
+  histGest="";histBusy=true;histLoaded=false;render();
   try{
     var r=await fetch("/api/refresh",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({periodo:"custom",from:histFrom,to:histTo})});
     if(!r.ok){var e=await r.json();throw new Error(e.error||"Erro no servidor");}
@@ -752,23 +759,25 @@ function rHist(){
       +'</div></div>';
 
     var rankRows=ranked.map(function(x){
-      var c=hC(x.taxa);
-      return '<div class="hrow"><span class="ava" style="background:'+CBG[x.g.name]+';color:'+COR[x.g.name]+'">'+x.g.ini+'</span><div class="hmeta"><div class="htop"><span class="hname">'+x.g.name.split(" ")[0]+'</span><span class="hpct" style="color:'+c+'">'+x.taxa+'%</span></div><div class="htrack"><div class="hfill" style="width:'+x.taxa+'%;background:'+c+'"></div></div><div class="hsub">'+x.concl+' concluídas · '+x.pend+' pendentes (situação atual)</div></div></div>';
+      var c=hC(x.taxa),sel=histGest===x.g.name;
+      return '<div class="hrow hrow-click'+(sel?" on":"")+'" onclick="setHistGest(\''+x.g.name+'\')"><span class="ava" style="background:'+CBG[x.g.name]+';color:'+COR[x.g.name]+'">'+x.g.ini+'</span><div class="hmeta"><div class="htop"><span class="hname">'+x.g.name.split(" ")[0]+'</span><span class="hpct" style="color:'+c+'">'+x.taxa+'%</span></div><div class="htrack"><div class="hfill" style="width:'+x.taxa+'%;background:'+c+'"></div></div><div class="hsub">'+x.concl+' concluídas · '+x.pend+' pendentes (situação atual)</div></div></div>';
     }).join("");
-    var ranking='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Taxa de execução por gestor · no período</div>'+rankRows+'</div>';
+    var ranking='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Taxa de execução por gestor · clique num gestor para ver só as tarefas dele</div>'+rankRows+'</div>';
 
     var rows=[];
     GESTORES.forEach(function(g){
+      if(histGest && g.name!==histGest) return;
       var d=HIST[g.name]||{feito:[]};
       (d.feito||[]).forEach(function(t){
         rows.push('<tr class="tbl-row"><td class="tbl-name">'+t.nome+'</td><td><span class="pop-dot" style="background:'+COR[g.name]+';vertical-align:middle"></span>'+g.name.split(" ")[0]+'</td><td class="num tbl-due" style="color:#15a883">'+(t.dueStr||"")+'</td></tr>');
       });
     });
+    var listaHead='<div class="hist-list-head"><div class="ctit" style="margin:0"><span class="cdot" style="background:#15a883"></span>Tarefas concluídas'+(histGest?" · "+histGest.split(" ")[0]:"")+'</div>'+(histGest?'<button class="hist-clear" onclick="setHistGest(\''+histGest+'\')">Mostrar todos</button>':'')+'</div>';
     var lista;
     if(rows.length===0){
-      lista='<div class="card"><div class="empty">Nenhuma tarefa concluída nesse período.</div></div>';
+      lista=listaHead+'<div class="card"><div class="empty">Nenhuma tarefa concluída nesse período.</div></div>';
     }else{
-      lista='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Tarefa concluída</th><th>Gestor</th><th class="num">Concluída em</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div>';
+      lista=listaHead+'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Tarefa concluída</th><th>Gestor</th><th class="num">Concluída em</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div>';
     }
 
     body=hero+ranking+lista;
