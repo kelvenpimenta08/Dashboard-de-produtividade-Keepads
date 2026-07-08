@@ -50,6 +50,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .custom-range{display:inline-flex;align-items:center;gap:7px}
 .dt-inp{font-family:var(--font);font-size:11px;font-weight:600;color:var(--text2);padding:6px 10px;border:1px solid var(--border2);border-radius:20px;background:#fff;cursor:pointer}
 .dt-inp:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--brand-soft)}
+.cbanner{display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#fff,var(--brand-soft));border:1px solid #cdeede;border-radius:var(--r);padding:11px 16px;margin-bottom:14px;flex-wrap:wrap;box-shadow:var(--sh)}
+.cbanner-tag{font-family:var(--head);font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--green-dark);background:#fff;border:1px solid #cdeede;border-radius:999px;padding:4px 11px;white-space:nowrap}
+.cbanner-txt{font-size:12px;color:var(--text2);line-height:1.5}
+.cbanner-txt b{font-weight:700;color:var(--text)}
+.cbanner-muted{color:var(--muted)}
+.hist-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;box-shadow:var(--sh)}
+.hist-vsep{width:1px;height:22px;background:var(--border2);margin:0 4px}
+.hrow-click{cursor:pointer;border-radius:9px;transition:background .14s;padding:7px 8px;margin:0 -8px 7px}
+.hrow-click:hover{background:#f4faf8}
+.hrow-click.on{background:var(--brand-soft);box-shadow:inset 0 0 0 1px #cdeede}
+.hist-list-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.hist-clear{appearance:none;border:1px solid var(--border2);background:#fff;color:var(--text2);font-family:var(--font);font-size:11px;font-weight:700;padding:5px 13px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.hist-clear:hover{border-color:var(--green);color:var(--green-dark)}
 .inner{padding:26px 36px;flex:1 0 auto}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:.18s;cursor:default}
@@ -260,19 +273,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     <button class="tab" id="tab-gestor" onclick="setTab('gestor')">Por Gestor</button>
     <button class="tab" id="tab-4dx" onclick="setTab('4dx')">4DX · MCI</button>
     <button class="tab" id="tab-intel" onclick="setTab('intel')">Inteligência</button>
+    <button class="tab" id="tab-hist" onclick="setTab('hist')">Histórico</button>
   </div>
-  <div class="per-wrap">
+  <div class="per-wrap" id="per-wrap">
     <span class="per-lbl">Período</span>
     <button class="per-btn active" id="per-semana" onclick="setPer('semana')">Esta Semana</button>
     <button class="per-btn" id="per-mes" onclick="setPer('mes')">Este Mês</button>
     <button class="per-btn" id="per-ano" onclick="setPer('ano')">Este Ano</button>
-    <button class="per-btn" id="per-custom" onclick="setPer('custom')">Personalizado</button>
-    <span class="custom-range" id="custom-range" style="display:none">
-      <input type="date" id="dt-from" class="dt-inp"/>
-      <span class="per-lbl" style="margin:0">até</span>
-      <input type="date" id="dt-to" class="dt-inp"/>
-      <button class="per-btn apply" onclick="applyCustom()">Aplicar</button>
-    </span>
   </div>
 </div>
 <div class="inner"><div id="content"></div></div>
@@ -292,12 +299,12 @@ const GESTORES=[{name:"Marcos Coelho",ini:"MC"},{name:"Pedro Augusto",ini:"PA"},
 const COR={"Marcos Coelho":"#ff3b30","Pedro Augusto":"#ff6d00","Tiago Ciribeli":"#c08a0e","Alexandre Pires":"#1dd1a1","Ana Clara Rayol":"#2b6cb0","Kelven Pimenta":"#6d48d6","Enzo Santos Paiva":"#0891b2"};
 const CBG={"Marcos Coelho":"#fef2f2","Pedro Augusto":"#fff7ed","Tiago Ciribeli":"#fffbeb","Alexandre Pires":"#e8f8f2","Ana Clara Rayol":"#ebf8ff","Kelven Pimenta":"#f3efff","Enzo Santos Paiva":"#ecfeff"};
 const TAG_CORES={"rotina":{bg:"#ebf8ff",c:"#2b6cb0"},"tarefa estratégica":{bg:"#f3efff",c:"#6d48d6"},"tarefa especifica":{bg:"#fff7ed",c:"#ff6d00"},"tarefa específica":{bg:"#fff7ed",c:"#ff6d00"},"onboarding":{bg:"#e8f8f2",c:"#1dd1a1"},"cliente":{bg:"#fff0f6",c:"#c0507a"}};
-const PL={semana:"Esta Semana",mes:"Este Mês",ano:"Este Ano",custom:"Personalizado"};
+const PL={semana:"Esta Semana",mes:"Este Mês",ano:"Este Ano"};
 const hC=h=>h>=60?"#1dd1a1":h>=35?"#ff6d00":"#ff3b30";
 
-let DADOS={};
+let DADOS={},HIST={};
 let tab="geral",per="semana",gest="Marcos Coelho",filtro="atrasado",busy=false;
-let customFrom="",customTo="";
+let histFrom="",histTo="",histLabel="",histBusy=false,histLoaded=false,histGest="";
 const fd=()=>new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"});
 const ft=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 
@@ -307,21 +314,40 @@ window.onload=()=>{
   render();
 };
 
-function setTab(t){tab=t;["geral","gestor","4dx","intel"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));render();}
-function setPer(p){
-  ["semana","mes","ano","custom"].forEach(k=>document.getElementById("per-"+k).classList.toggle("active",k===p));
-  document.getElementById("custom-range").style.display=p==="custom"?"inline-flex":"none";
-  if(p==="custom"){ if(!customFrom||!customTo) return; }
-  per=p;doRefresh();
+function setTab(t){
+  tab=t;
+  ["geral","gestor","4dx","intel","hist"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));
+  document.getElementById("per-wrap").style.visibility=t==="hist"?"hidden":"visible";
+  render();
 }
+function setPer(p){["semana","mes","ano"].forEach(k=>document.getElementById("per-"+k).classList.toggle("active",k===p));per=p;doRefresh();}
 function fmtBR(s){var p=s.split("-");return p[2]+"/"+p[1];}
-function applyCustom(){
-  var f=document.getElementById("dt-from").value, t=document.getElementById("dt-to").value;
-  if(!f||!t){ setSt("Escolha as duas datas.","warn"); return; }
-  if(f>t){ setSt("A data inicial é maior que a final.","warn"); return; }
-  customFrom=f; customTo=t; per="custom";
-  PL.custom=fmtBR(f)+" a "+fmtBR(t);
-  doRefresh();
+function ymd(d){var m=d.getMonth()+1,day=d.getDate();return d.getFullYear()+"-"+(m<10?"0"+m:m)+"-"+(day<10?"0"+day:day);}
+function histPreset(kind){
+  var now=new Date(),f,t;
+  if(kind==="semana"){var day=now.getDay();var ts=new Date(now);ts.setDate(now.getDate()-day);var ls=new Date(ts);ls.setDate(ts.getDate()-7);var lsat=new Date(ls);lsat.setDate(ls.getDate()+6);f=ls;t=lsat;}
+  else if(kind==="mes"){f=new Date(now.getFullYear(),now.getMonth()-1,1);t=new Date(now.getFullYear(),now.getMonth(),0);}
+  else{t=new Date(now);f=new Date(now);f.setDate(now.getDate()-29);}
+  histFrom=ymd(f);histTo=ymd(t);loadHist();
+}
+function histApply(){
+  var f=document.getElementById("h-from").value,t=document.getElementById("h-to").value;
+  if(!f||!t){setSt("Escolha as duas datas do histórico.","warn");return;}
+  if(f>t){setSt("A data inicial é maior que a final.","warn");return;}
+  histFrom=f;histTo=t;loadHist();
+}
+function setHistGest(n){histGest=(histGest===n?"":n);render();}
+async function loadHist(){
+  if(!histFrom||!histTo)return;
+  histLabel=fmtBR(histFrom)+" a "+fmtBR(histTo);
+  histGest="";histBusy=true;histLoaded=false;render();
+  try{
+    var r=await fetch("/api/refresh",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({periodo:"custom",from:histFrom,to:histTo})});
+    if(!r.ok){var e=await r.json();throw new Error(e.error||"Erro no servidor");}
+    var parsed=await r.json();
+    HIST=parsed.gestores||{};
+    histBusy=false;histLoaded=true;setSt("Histórico carregado ✓","ok");render();
+  }catch(e){histBusy=false;setSt("Erro: "+e.message,"err");render();}
 }
 function setGest(n){gest=n;filtro="atrasado";render();}
 function setFiltro(f){filtro=f;render();}
@@ -338,7 +364,7 @@ function updateHeaderTaxa(){
   el.textContent=tx+"%";
   el.style.color=hC(tx);
 }
-function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():rIntel();}
+function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():tab==="intel"?rIntel():rHist();}
 
 function tagHtml(tags){
   return (tags||[]).map(function(t){
@@ -693,6 +719,72 @@ function rIntel(){
   return diag+distrib+destaques+recsHtml+defsHtml+faixas+abasHtml;
 }
 
+function rHist(){
+  var ctrl='<div class="hist-controls">'
+    +'<span class="per-lbl">Atalhos</span>'
+    +'<button class="per-btn" onclick="histPreset(\'semana\')">Semana passada</button>'
+    +'<button class="per-btn" onclick="histPreset(\'mes\')">Mês passado</button>'
+    +'<button class="per-btn" onclick="histPreset(\'30d\')">Últimos 30 dias</button>'
+    +'<span class="hist-vsep"></span>'
+    +'<span class="per-lbl">De</span><input type="date" id="h-from" class="dt-inp" value="'+histFrom+'"/>'
+    +'<span class="per-lbl">até</span><input type="date" id="h-to" class="dt-inp" value="'+histTo+'"/>'
+    +'<button class="per-btn apply" onclick="histApply()">Ver histórico</button>'
+    +'</div>';
+
+  var body;
+  if(histBusy){
+    body='<div class="card"><div class="empty">Buscando tarefas concluídas no período…</div></div>';
+  }else if(!histLoaded){
+    body='<div class="card"><div class="empty">Escolha um período (um atalho ou as datas) e clique em “Ver histórico” para ver quantas tarefas foram concluídas nesse intervalo, por gestor.</div></div>';
+  }else{
+    var gd=GESTORES.map(function(g){
+      var d=HIST[g.name]||{totalFeito:0,totalAtrasado:0,totalVenceHoje:0,feito:[]};
+      var concl=d.totalFeito||0,pend=(d.totalAtrasado||0)+(d.totalVenceHoje||0),tot=concl+pend;
+      var taxa=tot>0?Math.round(concl/tot*100):0;
+      return {g:g,concl:concl,pend:pend,taxa:taxa,feito:d.feito||[]};
+    });
+    var totalConcl=gd.reduce(function(s,x){return s+x.concl;},0);
+    var totalPend=gd.reduce(function(s,x){return s+x.pend;},0);
+    var taxaGeral=(totalConcl+totalPend)>0?Math.round(totalConcl/(totalConcl+totalPend)*100):0;
+    var taxaC=hC(taxaGeral);
+    var ranked=gd.slice().sort(function(a,b){return b.concl-a.concl;});
+
+    var hero='<div class="ghdr" style="margin-bottom:14px">'
+      +'<div class="ginfo"><div class="glg" style="background:#e8f8f2;color:#15a883">'
+      +'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+      +'</div><div><div class="gnom">Tarefas concluídas no período</div><div class="gcar">'+histLabel+'</div></div></div>'
+      +'<div class="gkpis">'
+      +'<div class="gkpi"><div class="gkl">Concluídas</div><div class="gkv" style="color:#1dd1a1">'+totalConcl+'</div></div>'
+      +'<div class="gkpi"><div class="gkl">Taxa de execução</div><div class="gkv" style="color:'+taxaC+'">'+taxaGeral+'%</div></div>'
+      +'</div></div>';
+
+    var rankRows=ranked.map(function(x){
+      var c=hC(x.taxa),sel=histGest===x.g.name;
+      return '<div class="hrow hrow-click'+(sel?" on":"")+'" onclick="setHistGest(\''+x.g.name+'\')"><span class="ava" style="background:'+CBG[x.g.name]+';color:'+COR[x.g.name]+'">'+x.g.ini+'</span><div class="hmeta"><div class="htop"><span class="hname">'+x.g.name.split(" ")[0]+'</span><span class="hpct" style="color:'+c+'">'+x.taxa+'%</span></div><div class="htrack"><div class="hfill" style="width:'+x.taxa+'%;background:'+c+'"></div></div><div class="hsub">'+x.concl+' concluídas · '+x.pend+' pendentes (situação atual)</div></div></div>';
+    }).join("");
+    var ranking='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Taxa de execução por gestor · clique num gestor para ver só as tarefas dele</div>'+rankRows+'</div>';
+
+    var rows=[];
+    GESTORES.forEach(function(g){
+      if(histGest && g.name!==histGest) return;
+      var d=HIST[g.name]||{feito:[]};
+      (d.feito||[]).forEach(function(t){
+        rows.push('<tr class="tbl-row"><td class="tbl-name">'+t.nome+'</td><td><span class="pop-dot" style="background:'+COR[g.name]+';vertical-align:middle"></span>'+g.name.split(" ")[0]+'</td><td class="num tbl-due" style="color:#15a883">'+(t.dueStr||"")+'</td></tr>');
+      });
+    });
+    var listaHead='<div class="hist-list-head"><div class="ctit" style="margin:0"><span class="cdot" style="background:#15a883"></span>Tarefas concluídas'+(histGest?" · "+histGest.split(" ")[0]:"")+'</div>'+(histGest?'<button class="hist-clear" onclick="setHistGest(\''+histGest+'\')">Mostrar todos</button>':'')+'</div>';
+    var lista;
+    if(rows.length===0){
+      lista=listaHead+'<div class="card"><div class="empty">Nenhuma tarefa concluída nesse período.</div></div>';
+    }else{
+      lista=listaHead+'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Tarefa concluída</th><th>Gestor</th><th class="num">Concluída em</th></tr></thead><tbody>'+rows.join("")+'</tbody></table></div>';
+    }
+
+    body=hero+ranking+lista;
+  }
+  return ctrl+body;
+}
+
 async function doRefresh(){
   if(busy)return;busy=true;
   var btn=document.getElementById("btn-ref");btn.disabled=true;btn.classList.add("spin");
@@ -701,7 +793,7 @@ async function doRefresh(){
     var r=await fetch("/api/refresh",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({periodo:per,from:customFrom,to:customTo})
+      body:JSON.stringify({periodo:per})
     });
     if(!r.ok){var e=await r.json();throw new Error(e.error||"Erro no servidor");}
     var parsed=await r.json();
