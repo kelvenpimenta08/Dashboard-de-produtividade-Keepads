@@ -731,28 +731,31 @@ function rHist(){
     body='<div class="card"><div class="empty">Escolha um período (um atalho ou as datas) e clique em “Ver histórico” para ver quantas tarefas foram concluídas nesse intervalo, por gestor.</div></div>';
   }else{
     var gd=GESTORES.map(function(g){
-      var d=HIST[g.name]||{totalFeito:0,feito:[]};
-      return {g:g,n:d.totalFeito||0,feito:d.feito||[]};
+      var d=HIST[g.name]||{totalFeito:0,totalAtrasado:0,totalVenceHoje:0,feito:[]};
+      var concl=d.totalFeito||0,pend=(d.totalAtrasado||0)+(d.totalVenceHoje||0),tot=concl+pend;
+      var taxa=tot>0?Math.round(concl/tot*100):0;
+      return {g:g,concl:concl,pend:pend,taxa:taxa,feito:d.feito||[]};
     });
-    var total=gd.reduce(function(s,x){return s+x.n;},0);
-    var entregaram=gd.filter(function(x){return x.n>0;}).length;
-    var ranked=gd.slice().sort(function(a,b){return b.n-a.n;});
-    var maxN=Math.max(1,...gd.map(function(x){return x.n;}));
+    var totalConcl=gd.reduce(function(s,x){return s+x.concl;},0);
+    var totalPend=gd.reduce(function(s,x){return s+x.pend;},0);
+    var taxaGeral=(totalConcl+totalPend)>0?Math.round(totalConcl/(totalConcl+totalPend)*100):0;
+    var taxaC=hC(taxaGeral);
+    var ranked=gd.slice().sort(function(a,b){return b.concl-a.concl;});
 
     var hero='<div class="ghdr" style="margin-bottom:14px">'
       +'<div class="ginfo"><div class="glg" style="background:#e8f8f2;color:#15a883">'
       +'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
       +'</div><div><div class="gnom">Tarefas concluídas no período</div><div class="gcar">'+histLabel+'</div></div></div>'
       +'<div class="gkpis">'
-      +'<div class="gkpi"><div class="gkl">Concluídas</div><div class="gkv" style="color:#1dd1a1">'+total+'</div></div>'
-      +'<div class="gkpi"><div class="gkl">Entregaram</div><div class="gkv" style="color:var(--text)">'+entregaram+'</div></div>'
+      +'<div class="gkpi"><div class="gkl">Concluídas</div><div class="gkv" style="color:#1dd1a1">'+totalConcl+'</div></div>'
+      +'<div class="gkpi"><div class="gkl">Taxa de execução</div><div class="gkv" style="color:'+taxaC+'">'+taxaGeral+'%</div></div>'
       +'</div></div>';
 
     var rankRows=ranked.map(function(x){
-      var pct=x.n/maxN*100;
-      return '<div class="brow"><div class="btop"><div class="bname"><span class="ava" style="background:'+CBG[x.g.name]+';color:'+COR[x.g.name]+'">'+x.g.ini+'</span>'+x.g.name.split(" ")[0]+'</div><span class="bval" style="color:#1dd1a1">'+x.n+'</span></div><div class="btrack"><div class="bfill" style="width:'+pct+'%;background:#1dd1a1"></div></div></div>';
+      var c=hC(x.taxa);
+      return '<div class="hrow"><span class="ava" style="background:'+CBG[x.g.name]+';color:'+COR[x.g.name]+'">'+x.g.ini+'</span><div class="hmeta"><div class="htop"><span class="hname">'+x.g.name.split(" ")[0]+'</span><span class="hpct" style="color:'+c+'">'+x.taxa+'%</span></div><div class="htrack"><div class="hfill" style="width:'+x.taxa+'%;background:'+c+'"></div></div><div class="hsub">'+x.concl+' concluídas · '+x.pend+' pendentes (situação atual)</div></div></div>';
     }).join("");
-    var ranking='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#1dd1a1"></span>Concluídas por gestor · ranking</div>'+rankRows+'</div>';
+    var ranking='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Taxa de execução por gestor · no período</div>'+rankRows+'</div>';
 
     var rows=[];
     GESTORES.forEach(function(g){
