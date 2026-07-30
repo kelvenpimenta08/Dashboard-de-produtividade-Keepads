@@ -13,22 +13,27 @@ module.exports = async function handler(req, res) {
 
   var LISTAS = ['901320419867', '901327187163', '901320419878'];
 
+  // Casa cada gestor pelo ID do ClickUp (estável, não muda em renomeações).
+  // 'chaves' = nomes de usuário conhecidos, usados só como reserva.
   var MAPA = [
-    { chave: 'Marcos Coelho',                   nome: 'Marcos Coelho' },
-    { chave: 'Pedro Augusto de Novaes Barreto', nome: 'Pedro Augusto' },
-    { chave: 'Tiago Ciribeli',                  nome: 'Tiago Ciribeli' },
-    { chave: 'Alexandre Pires dias',            nome: 'Alexandre Pires' },
-    { chave: 'Kelven Pimenta',                  nome: 'Kelven Pimenta' },
-    { chave: 'Ana Clara Rayol',                 nome: 'Ana Clara Rayol' },
-    { chave: 'Enzo Santos Paiva',               nome: 'Enzo Santos Paiva' }
+    { ids: [81979690],            chaves: ['Marcos Coelho'],                                  nome: 'Marcos Coelho' },
+    { ids: [72724121],            chaves: ['Pedro Barreto', 'Pedro Augusto de Novaes Barreto'], nome: 'Pedro Augusto' },
+    { ids: [82193728],            chaves: ['Tiago Ciribeli'],                                 nome: 'Tiago Ciribeli' },
+    { ids: [106181981],           chaves: ['Alexandre Pires dias'],                           nome: 'Alexandre Pires' },
+    { ids: [112047362, 72846863], chaves: ['Kelven Pimenta'],                                 nome: 'Kelven Pimenta' },
+    { ids: [61035965],            chaves: ['Ana Clara Rayol'],                                nome: 'Ana Clara Rayol' },
+    { ids: [82159134],            chaves: ['Enzo Paiva', 'Enzo Santos Paiva'],                nome: 'Enzo Santos Paiva' }
   ];
 
   var GESTORES = ['Marcos Coelho','Pedro Augusto','Tiago Ciribeli','Alexandre Pires','Kelven Pimenta','Ana Clara Rayol','Enzo Santos Paiva'];
 
-  function mapNome(fullName) {
-    if (!fullName) return null;
+  function mapAssignee(a) {
+    if (!a) return null;
     for (var i = 0; i < MAPA.length; i++) {
-      if (fullName === MAPA[i].chave) return MAPA[i].nome;
+      if (a.id != null && MAPA[i].ids.indexOf(a.id) !== -1) return MAPA[i].nome;
+    }
+    for (var j = 0; j < MAPA.length; j++) {
+      if (a.username && MAPA[j].chaves.indexOf(a.username) !== -1) return MAPA[j].nome;
     }
     return null;
   }
@@ -102,7 +107,7 @@ module.exports = async function handler(req, res) {
           var tipo = due < hojeMs ? 'atrasado' : due < amanhaMs ? 'venceHoje' : 'noPrazo';
 
           (task.assignees || []).forEach(function(a) {
-            var nome = mapNome(a.username || '');
+            var nome = mapAssignee(a);
             if (nome) addTask(nome, taskInfo, tipo);
           });
         });
@@ -131,7 +136,7 @@ module.exports = async function handler(req, res) {
             dueStr: task.date_done ? new Date(parseInt(task.date_done)).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : ''
           };
           (task.assignees || []).forEach(function(a) {
-            var nome = mapNome(a.username || '');
+            var nome = mapAssignee(a);
             if (nome) addTask(nome, taskInfo, 'feito');
           });
         });
