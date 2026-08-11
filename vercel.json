@@ -3,10 +3,14 @@
   "functions": {
     "api/refresh.js": {
       "maxDuration": 60
+    },
+    "api/note.js": {
+      "maxDuration": 60
     }
   },
   "routes": [
     { "src": "/api/refresh", "dest": "/api/refresh.js" },
+    { "src": "/api/note", "dest": "/api/note.js" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
