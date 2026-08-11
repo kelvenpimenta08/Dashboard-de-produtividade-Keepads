@@ -98,10 +98,14 @@ module.exports = async function handler(req, res) {
 
           var due = parseInt(task.due_date);
           var tags = (task.tags || []).map(function(t){ return t.name; });
+          var diasAtraso = Math.floor((hojeMs - due) / 86400000);
           var taskInfo = {
+            id: task.id,
             nome: task.name,
             tags: tags,
-            dueStr: new Date(due).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})
+            dueStr: new Date(due).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),
+            diasAtraso: diasAtraso,
+            url: task.url || ''
           };
 
           var tipo = due < hojeMs ? 'atrasado' : due < amanhaMs ? 'venceHoje' : 'noPrazo';
