@@ -75,10 +75,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .proc-item-meta{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:11px}
 .proc-link{color:var(--green-dark);font-weight:600;text-decoration:none}
 .proc-link:hover{text-decoration:underline}
-.proc-nota-wrap{display:flex;align-items:flex-start;gap:10px}
-.proc-nota{flex:1;font-family:var(--font);font-size:12px;color:var(--text);padding:9px 12px;border:1px solid var(--border2);border-radius:9px;background:#fcfdfd;resize:vertical;min-height:38px;line-height:1.45}
+.proc-nota-wrap{display:flex;align-items:stretch;gap:10px}
+.proc-nota{flex:1;font-family:var(--font);font-size:12px;color:var(--text);padding:9px 12px;border:1px solid var(--border2);border-radius:9px;background:#fcfdfd;resize:vertical;min-height:40px;line-height:1.45}
 .proc-nota:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--brand-soft);background:#fff}
-.proc-nota-ok{font-size:10px;font-weight:700;color:var(--green-dark);white-space:nowrap;margin-top:11px}
+.proc-nota-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.proc-send{appearance:none;border:none;background:var(--green);color:#fff;font-family:var(--head);font-size:11px;font-weight:600;padding:9px 18px;border-radius:8px;cursor:pointer;white-space:nowrap;box-shadow:0 1px 2px rgba(17,38,30,.1),0 4px 12px -2px rgba(29,209,161,.45)}
+.proc-send:hover{background:var(--green-dark)}
+.proc-send:disabled{opacity:.6;cursor:not-allowed}
+.proc-nota-ok{font-size:10px;font-weight:700;white-space:nowrap;color:var(--muted)}
+.proc-nota-ok.ok{color:var(--green-dark)}.proc-nota-ok.err{color:var(--red)}.proc-nota-ok.warn{color:var(--orange)}
+.proc-loadhint{font-size:11px;color:var(--muted);font-weight:500;margin:-4px 0 12px 2px}
 .inner{padding:26px 36px;flex:1 0 auto}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
 .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:.18s;cursor:default}
@@ -322,7 +328,7 @@ const hC=h=>h>=60?"#1dd1a1":h>=35?"#ff6d00":"#ff3b30";
 let DADOS={},HIST={};
 let tab="geral",per="semana",gest="Marcos Coelho",filtro="atrasado",busy=false;
 let histFrom="",histTo="",histLabel="",histBusy=false,histLoaded=false,histGest="";
-let procGest="";
+let procGest="",PROCNOTES={},procNotesLoaded=false,procNotesBusy=false;
 const fd=()=>new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"});
 const ft=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 
@@ -385,10 +391,27 @@ function updateHeaderTaxa(){
 function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():tab==="intel"?rIntel():tab==="hist"?rHist():rProc();}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function setProcGest(n){procGest=(procGest===n?"":n);render();}
-function procNotaKey(id){return "procnota_"+id;}
-function getProcNota(id){try{return localStorage.getItem(procNotaKey(id))||"";}catch(e){return "";}}
-function saveProcNota(id,val,el){try{localStorage.setItem(procNotaKey(id),val);}catch(e){}
-  if(el){var f=el.parentNode.querySelector(".proc-nota-ok");if(f){f.textContent=val.trim()?"nota salva":"";}}
+async function loadProcNotes(ids){
+  if(!ids.length){procNotesLoaded=true;return;}
+  procNotesBusy=true;
+  try{
+    var r=await fetch("/api/note",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"list",taskIds:ids})});
+    if(r.ok){var d=await r.json();PROCNOTES=Object.assign({},PROCNOTES,d.notas||{});}
+  }catch(e){}
+  procNotesBusy=false;procNotesLoaded=true;render();
+}
+async function sendProcNota(id,btn){
+  var wrap=btn.closest(".proc-nota-wrap"),ta=wrap.querySelector(".proc-nota"),ok=wrap.querySelector(".proc-nota-ok");
+  var val=ta.value.trim();
+  if(!val){ok.textContent="escreva algo antes";ok.className="proc-nota-ok warn";return;}
+  btn.disabled=true;var old=btn.textContent;btn.textContent="Enviando…";ok.textContent="";ok.className="proc-nota-ok";
+  try{
+    var r=await fetch("/api/note",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add",taskId:id,texto:val})});
+    if(!r.ok){var e=await r.json().catch(function(){return{};});throw new Error(e.error||"erro");}
+    PROCNOTES[id]=val;
+    ok.textContent="registrada no ClickUp ✓";ok.className="proc-nota-ok ok";
+  }catch(e){ok.textContent="erro ao enviar";ok.className="proc-nota-ok err";}
+  finally{btn.disabled=false;btn.textContent=old;}
 }
 
 function tagHtml(tags){
@@ -826,11 +849,15 @@ function rProc(){
 
   var intro='<div class="card" style="border-left:4px solid #ff6d00;margin-bottom:14px">'
     +'<div class="ctit"><span class="cdot" style="background:#ff6d00"></span>Zona de procrastinação · atrasos de 7 dias ou mais</div>'
-    +'<div style="font-size:12.5px;color:var(--text2);line-height:1.6">Quando uma tarefa passa de 7 dias de atraso, a tendência é ser empurrada indefinidamente. Estas cruzaram essa linha. Anote o motivo de cada uma para destravar na reunião de MCI. <span style="color:var(--muted)">As notas ficam salvas neste navegador.</span></div>'
+    +'<div style="font-size:12.5px;color:var(--text2);line-height:1.6">Quando uma tarefa passa de 7 dias de atraso, a tendência é ser empurrada indefinidamente. Estas cruzaram essa linha. Escreva o motivo de cada uma e clique em Enviar. <span style="color:var(--muted)">A nota vira um comentário na tarefa do ClickUp (registro da equipe).</span></div>'
     +'</div>';
 
   if(total===0){
     return intro+'<div class="card"><div class="empty">Nenhuma tarefa passou de 7 dias de atraso. Tudo sob controle.</div></div>';
+  }
+
+  if(!procNotesLoaded && !procNotesBusy){
+    loadProcNotes(Array.from(new Set(items.map(function(x){return x.t.id;}).filter(Boolean))));
   }
 
   var chips='<button class="proc-chip'+(procGest===""?" on":"")+'" onclick="setProcGest(\'\')">Todos · '+total+'</button>';
@@ -839,7 +866,8 @@ function rProc(){
     var sel=procGest===g.name;
     chips+='<button class="proc-chip'+(sel?" on":"")+'" onclick="setProcGest(\''+g.name+'\')"><span class="ava" style="background:'+CBG[g.name]+';color:'+COR[g.name]+'">'+g.ini+'</span>'+g.name.split(" ")[0]+' · '+porGestor[g.name]+'</button>';
   });
-  var filterBar='<div class="proc-filter">'+chips+'</div>';
+  var loadHint=procNotesBusy?'<div class="proc-loadhint">Carregando notas já registradas no ClickUp…</div>':'';
+  var filterBar='<div class="proc-filter">'+chips+'</div>'+loadHint;
 
   var filtered=procGest?items.filter(function(x){return x.g.name===procGest;}):items;
   filtered.sort(function(a,b){return b.dias-a.dias;});
@@ -848,12 +876,13 @@ function rProc(){
     var dias=x.dias;
     var sev=dias>=30?"#cc0000":dias>=15?"#ff3b30":"#ff6d00";
     var sevBg=dias>=30?"#fdecec":dias>=15?"#fef2f2":"#fff7ed";
-    var nota=getProcNota(x.t.id);
+    var nota=PROCNOTES[x.t.id]||"";
     var link=x.t.url?' · <a href="'+x.t.url+'" target="_blank" rel="noopener" class="proc-link">abrir no ClickUp</a>':'';
     return '<div class="proc-item" style="border-left-color:'+sev+'">'
       +'<div class="proc-item-top"><div class="proc-item-name">'+esc(x.t.nome)+'</div><span class="proc-dias" style="background:'+sevBg+';color:'+sev+'">'+dias+' dias</span></div>'
       +'<div class="proc-item-meta"><span class="pop-dot" style="background:'+COR[x.g.name]+';vertical-align:middle"></span>'+x.g.name.split(" ")[0]+' · venceu em '+x.t.dueStr+link+'</div>'
-      +'<div class="proc-nota-wrap"><textarea class="proc-nota" placeholder="Por que não foi feito?" onblur="saveProcNota(\''+x.t.id+'\',this.value,this)">'+esc(nota)+'</textarea><span class="proc-nota-ok">'+(nota.trim()?"nota salva":"")+'</span></div>'
+      +'<div class="proc-nota-wrap"><textarea class="proc-nota" placeholder="Por que não foi feito?">'+esc(nota)+'</textarea>'
+      +'<div class="proc-nota-side"><button class="proc-send" onclick="sendProcNota(\''+x.t.id+'\',this)">Enviar</button><span class="proc-nota-ok'+(nota?" ok":"")+'">'+(nota?"registrada":"")+'</span></div></div>'
       +'</div>';
   }).join("");
 
@@ -873,6 +902,7 @@ async function doRefresh(){
     if(!r.ok){var e=await r.json();throw new Error(e.error||"Erro no servidor");}
     var parsed=await r.json();
     if(parsed.gestores) DADOS=parsed.gestores;
+    procNotesLoaded=false;
     document.getElementById("hdr-time").textContent="Última atualização: "+fd()+" "+ft();
     setSt("Dados atualizados com sucesso ✓","ok");
     render();
