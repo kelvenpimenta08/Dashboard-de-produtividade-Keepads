@@ -22,10 +22,11 @@ module.exports = async function handler(req, res) {
     { ids: [106181981],           chaves: ['Alexandre Pires dias'],                           nome: 'Alexandre Pires' },
     { ids: [112047362, 72846863], chaves: ['Kelven Pimenta'],                                 nome: 'Kelven Pimenta' },
     { ids: [61035965],            chaves: ['Ana Clara Rayol'],                                nome: 'Ana Clara Rayol' },
-    { ids: [82159134],            chaves: ['Enzo Paiva', 'Enzo Santos Paiva'],                nome: 'Enzo Santos Paiva' }
+    { ids: [82159134],            chaves: ['Enzo Paiva', 'Enzo Santos Paiva'],                nome: 'Enzo Santos Paiva' },
+    { ids: [96203724],            chaves: ['Guilherme Vital'],                                nome: 'Guilherme Vital' }
   ];
 
-  var GESTORES = ['Marcos Coelho','Pedro Augusto','Tiago Ciribeli','Alexandre Pires','Kelven Pimenta','Ana Clara Rayol','Enzo Santos Paiva'];
+  var GESTORES = ['Marcos Coelho','Pedro Augusto','Tiago Ciribeli','Alexandre Pires','Kelven Pimenta','Ana Clara Rayol','Enzo Santos Paiva','Guilherme Vital'];
 
   function mapAssignee(a) {
     if (!a) return null;
