@@ -85,6 +85,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .proc-nota-ok{font-size:10px;font-weight:700;white-space:nowrap;color:var(--muted)}
 .proc-nota-ok.ok{color:var(--green-dark)}.proc-nota-ok.err{color:var(--red)}.proc-nota-ok.warn{color:var(--orange)}
 .proc-loadhint{font-size:11px;color:var(--muted);font-weight:500;margin:-4px 0 12px 2px}
+.cs-pill{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:999px;white-space:nowrap;text-transform:uppercase}
 .inner{padding:26px 36px;flex:1 0 auto}
 .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
 .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:.18s;cursor:default}
@@ -298,6 +299,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     <button class="tab" id="tab-intel" onclick="setTab('intel')">Inteligência</button>
     <button class="tab" id="tab-hist" onclick="setTab('hist')">Histórico</button>
     <button class="tab" id="tab-proc" onclick="setTab('proc')">Atrasos +7d</button>
+    <button class="tab" id="tab-cs" onclick="setTab('cs')">CS</button>
   </div>
   <div class="per-wrap" id="per-wrap">
     <span class="per-lbl">Período</span>
@@ -330,6 +332,7 @@ let DADOS={},HIST={};
 let tab="geral",per="semana",gest="Marcos Coelho",filtro="atrasado",busy=false;
 let histFrom="",histTo="",histLabel="",histBusy=false,histLoaded=false,histGest="";
 let procGest="",PROCNOTES={},procNotesLoaded=false,procNotesBusy=false;
+let csGest="";
 const fd=()=>new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"});
 const ft=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 
@@ -341,10 +344,11 @@ window.onload=()=>{
 
 function setTab(t){
   tab=t;
-  ["geral","gestor","4dx","intel","hist","proc"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));
+  ["geral","gestor","4dx","intel","hist","proc","cs"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));
   document.getElementById("per-wrap").style.visibility=(t==="hist"||t==="proc")?"hidden":"visible";
   render();
 }
+function setCsGest(n){csGest=(csGest===n?"":n);render();}
 function setPer(p){["semana","mes","ano"].forEach(k=>document.getElementById("per-"+k).classList.toggle("active",k===p));per=p;doRefresh();}
 function fmtBR(s){var p=s.split("-");return p[2]+"/"+p[1];}
 function ymd(d){var m=d.getMonth()+1,day=d.getDate();return d.getFullYear()+"-"+(m<10?"0"+m:m)+"-"+(day<10?"0"+day:day);}
@@ -389,7 +393,8 @@ function updateHeaderTaxa(){
   el.textContent=tx+"%";
   el.style.color=hC(tx);
 }
-function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():tab==="intel"?rIntel():tab==="hist"?rHist():rProc();}
+function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():tab==="intel"?rIntel():tab==="hist"?rHist():tab==="proc"?rProc():rCS();}
+function csHasTag(t){return (t.tags||[]).some(function(x){return String(x).toLowerCase()==="cs";});}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function setProcGest(n){procGest=(procGest===n?"":n);render();}
 async function loadProcNotes(ids){
@@ -894,6 +899,75 @@ function rProc(){
   }).join("");
 
   return intro+filterBar+'<div class="proc-list">'+cards+'</div>';
+}
+
+function rCS(){
+  var cats=[
+    {key:'feito',     lbl:'Feita',      cor:'#1dd1a1', bg:'#e8f8f2'},
+    {key:'atrasado',  lbl:'Em atraso',  cor:'#ff3b30', bg:'#fef2f2'},
+    {key:'venceHoje', lbl:'Vence hoje', cor:'#ff6d00', bg:'#fff7ed'},
+    {key:'noPrazo',   lbl:'A fazer',    cor:'#2b6cb0', bg:'#ebf8ff'}
+  ];
+  var catInfo={}; cats.forEach(function(c){catInfo[c.key]=c;});
+
+  var gd=GESTORES.map(function(g){
+    var d=DADOS[g.name]||{};
+    var rec={g:g,feitas:0,pend:0,geradas:0,tasks:[]};
+    cats.forEach(function(c){
+      (d[c.key]||[]).forEach(function(t){
+        if(!csHasTag(t)) return;
+        rec.tasks.push({t:t,cat:c.key});
+        if(c.key==='feito') rec.feitas++; else rec.pend++;
+      });
+    });
+    rec.geradas=rec.feitas+rec.pend;
+    return rec;
+  });
+  var totGer=gd.reduce(function(s,x){return s+x.geradas;},0);
+  var totFei=gd.reduce(function(s,x){return s+x.feitas;},0);
+  var totPen=totGer-totFei;
+  var taxa=totGer>0?Math.round(totFei/totGer*100):0, taxaC=hC(taxa);
+  var temDados=GESTORES.some(function(g){return DADOS[g.name];});
+
+  var intro='<div class="card" style="border-left:4px solid #0ca678;margin-bottom:14px">'
+    +'<div class="ctit"><span class="cdot" style="background:#0ca678"></span>Tarefas CS · grupo do cliente</div>'
+    +'<div style="font-size:12.5px;color:var(--text2);line-height:1.6">Acompanhamento das tarefas com a tag <b>cs</b> (do grupo do cliente). <span style="color:var(--muted)">"Geradas" = todas as CS que existem agora (abertas + feitas). "Feitas" reflete o período '+PL[per]+'.</span></div>'
+    +'</div>';
+
+  if(!temDados || totGer===0){
+    return intro+'<div class="card"><div class="empty">'+(temDados?'Nenhuma tarefa com a tag cs no momento.':'Clique em Atualizar Agora para carregar os dados.')+'</div></div>';
+  }
+
+  var hero='<div class="ghdr" style="margin-bottom:14px">'
+    +'<div class="ginfo"><div class="glg" style="background:#e6fcf5;color:#0ca678">'
+    +'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8z"/><path d="M9 13l2 2 4-4"/></svg>'
+    +'</div><div><div class="gnom">Tarefas CS</div><div class="gcar">grupo do cliente · '+PL[per]+'</div></div></div>'
+    +'<div class="gkpis">'
+    +'<div class="gkpi"><div class="gkl">Geradas</div><div class="gkv" style="color:var(--text)">'+totGer+'</div></div>'
+    +'<div class="gkpi"><div class="gkl">Feitas</div><div class="gkv" style="color:#1dd1a1">'+totFei+'</div></div>'
+    +'<div class="gkpi"><div class="gkl">Pendentes</div><div class="gkv" style="color:#2b6cb0">'+totPen+'</div></div>'
+    +'<div class="gkpi"><div class="gkl">Taxa</div><div class="gkv" style="color:'+taxaC+'">'+taxa+'%</div></div>'
+    +'</div></div>';
+
+  var ranked=gd.filter(function(x){return x.geradas>0;}).sort(function(a,b){return b.geradas-a.geradas;});
+  var rows=ranked.map(function(x){
+    var tx=x.geradas>0?Math.round(x.feitas/x.geradas*100):0, c=hC(tx), sel=csGest===x.g.name;
+    return '<div class="hrow hrow-click'+(sel?" on":"")+'" onclick="setCsGest(\''+x.g.name+'\')"><span class="ava" style="background:'+CBG[x.g.name]+';color:'+COR[x.g.name]+'">'+x.g.ini+'</span><div class="hmeta"><div class="htop"><span class="hname">'+x.g.name.split(" ")[0]+'</span><span class="hpct" style="color:'+c+'">'+x.feitas+'/'+x.geradas+'</span></div><div class="htrack"><div class="hfill" style="width:'+tx+'%;background:'+c+'"></div></div><div class="hsub">'+x.geradas+' geradas · '+x.feitas+' feitas · '+x.pend+' pendentes</div></div></div>';
+  }).join("");
+  var porGestor='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#0ca678"></span>CS por gestor · clique para ver só as dele (feitas / geradas)</div>'+rows+'</div>';
+
+  var listRows=[];
+  gd.forEach(function(x){
+    if(csGest && x.g.name!==csGest) return;
+    x.tasks.forEach(function(it){
+      var ci=catInfo[it.cat];
+      listRows.push('<tr class="tbl-row"><td class="tbl-name">'+esc(it.t.nome)+'</td><td><span class="pop-dot" style="background:'+COR[x.g.name]+';vertical-align:middle"></span>'+x.g.name.split(" ")[0]+'</td><td><span class="cs-pill" style="background:'+ci.bg+';color:'+ci.cor+'">'+ci.lbl+'</span></td><td class="num tbl-due" style="color:'+ci.cor+'">'+(it.t.dueStr||"")+'</td></tr>');
+    });
+  });
+  var listHead='<div class="hist-list-head"><div class="ctit" style="margin:0"><span class="cdot" style="background:#0ca678"></span>Tarefas CS'+(csGest?" · "+csGest.split(" ")[0]:"")+'</div>'+(csGest?'<button class="hist-clear" onclick="setCsGest(\''+csGest+'\')">Mostrar todos</button>':'')+'</div>';
+  var lista=listHead+(listRows.length?'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Tarefa</th><th>Gestor</th><th>Status</th><th class="num">Prazo</th></tr></thead><tbody>'+listRows.join("")+'</tbody></table></div>':'<div class="card"><div class="empty">Nenhuma tarefa CS deste gestor.</div></div>');
+
+  return intro+hero+porGestor+lista;
 }
 
 async function doRefresh(){
