@@ -39,7 +39,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .btn.spin svg{animation:spin .7s linear infinite}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .ctrl{background:#fff;border-bottom:1px solid var(--border);padding:0 36px;display:flex;justify-content:space-between;align-items:center;height:52px}
-.tabs{display:flex;height:100%}
+.tabs{display:flex;height:100%;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
 .tab{display:inline-flex;align-items:center;white-space:nowrap;padding:0 16px;font-family:var(--font);font-size:11px;font-weight:800;letter-spacing:.06em;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;transition:.15s;text-transform:uppercase;height:100%}
 .tab.active{color:var(--green);border-bottom-color:var(--green)}
 .per-wrap{display:flex;align-items:center;gap:7px}
@@ -86,6 +87,36 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .proc-nota-ok.ok{color:var(--green-dark)}.proc-nota-ok.err{color:var(--red)}.proc-nota-ok.warn{color:var(--orange)}
 .proc-loadhint{font-size:11px;color:var(--muted);font-weight:500;margin:-4px 0 12px 2px}
 .cs-pill{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:999px;white-space:nowrap;text-transform:uppercase}
+.cli-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.mixbar{display:flex;height:18px;border-radius:999px;overflow:hidden;background:var(--bg)}
+.mixbar>i{display:block;height:100%}
+.mixlegend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px}
+.mixleg-item{font-size:11.5px;color:var(--text2);display:inline-flex;align-items:center;gap:7px}
+.mixleg-item i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.mixleg-item b{font-family:var(--head);font-variant-numeric:tabular-nums}
+.cli-rank-row{display:grid;grid-template-columns:170px 1fr 34px;align-items:center;gap:12px;margin-bottom:9px}
+.cli-rank-nm{font-size:12px;color:var(--text2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cli-rank-track{display:flex;height:9px;border-radius:999px;overflow:hidden;background:var(--bg);min-width:2px}
+.cli-rank-track>i{display:block;height:100%}
+.cli-rank-qt{text-align:right;font-family:var(--head);font-variant-numeric:tabular-nums;font-weight:700;font-size:13px}
+.cli-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.cli-list{display:flex;flex-direction:column;gap:8px}
+.cli-acc{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.cli-acc>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:13px 16px}
+.cli-acc>summary::-webkit-details-marker{display:none}
+.cli-acc[open]>summary{border-bottom:1px solid var(--border)}
+.cli-name{font-family:var(--head);font-weight:700;font-size:13px;color:var(--text)}
+.cli-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.cli-chip{font-size:9px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;text-transform:uppercase}
+.cli-total{font-family:var(--head);font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;min-width:26px;text-align:right}
+.cli-tasks{padding:6px 16px 12px}
+.cli-task{display:grid;grid-template-columns:12px 1fr auto auto;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.cli-task:last-child{border-bottom:none}
+.cli-tdot{width:8px;height:8px;border-radius:50%}
+.cli-tname{color:var(--text2);line-height:1.4}
+.cli-tresp{font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap}
+.cli-tdate{font-family:var(--head);font-variant-numeric:tabular-nums;font-size:11px;color:var(--muted);white-space:nowrap}
+@media(max-width:680px){.cli-kpis{grid-template-columns:1fr 1fr}.cli-rank-row{grid-template-columns:104px 1fr 30px}.cli-task{grid-template-columns:12px 1fr auto}.cli-tresp{display:none}}
 .inner{padding:26px 36px;flex:1 0 auto}
 .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
 .kpi{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--sh);transition:.18s;cursor:default}
@@ -300,6 +331,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
     <button class="tab" id="tab-hist" onclick="setTab('hist')">Histórico</button>
     <button class="tab" id="tab-proc" onclick="setTab('proc')">Atrasos +7d</button>
     <button class="tab" id="tab-cs" onclick="setTab('cs')">CS</button>
+    <button class="tab" id="tab-cli" onclick="setTab('cli')">Por Cliente</button>
   </div>
   <div class="per-wrap" id="per-wrap">
     <span class="per-lbl">Período</span>
@@ -344,7 +376,7 @@ window.onload=()=>{
 
 function setTab(t){
   tab=t;
-  ["geral","gestor","4dx","intel","hist","proc","cs"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));
+  ["geral","gestor","4dx","intel","hist","proc","cs","cli"].forEach(k=>document.getElementById("tab-"+k).classList.toggle("active",k===t));
   document.getElementById("per-wrap").style.visibility=(t==="hist"||t==="proc")?"hidden":"visible";
   render();
 }
@@ -393,8 +425,29 @@ function updateHeaderTaxa(){
   el.textContent=tx+"%";
   el.style.color=hC(tx);
 }
-function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():tab==="intel"?rIntel():tab==="hist"?rHist():tab==="proc"?rProc():rCS();}
+function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():tab==="intel"?rIntel():tab==="hist"?rHist():tab==="proc"?rProc():tab==="cs"?rCS():rCli();}
 function csHasTag(t){return (t.tags||[]).some(function(x){return String(x).toLowerCase()==="cs";});}
+// Classificação por natureza da tarefa (rotina / estratégico / demanda real)
+var NAT_R=[/atualizar? p[úu]blico/i,/atualiza[çc][ãa]o de p[úu]blico/i,/reenvio do checklist/i,/envio d[oe] relat[óo]rio/i,/enviar relat[óo]rio completo/i,/envio do relat[óo]rio/i,/envio de relat[óo]rio/i,/checar reuni[ãa]o/i,/verif?icar post/i,/enviar (boleto|pix)/i,/enviar nf/i,/revisar or[çc]amento cliente google/i,/negativa[çc][ãa]o de palavras/i,/subir ofertas/i,/subir youtube/i];
+var NAT_E=[/revis[ãa]o estrat[ée]gica/i,/onboarding/i,/reuni[ãa]o de briefing/i];
+function natKind(nome){nome=nome||"";if(NAT_E.some(function(r){return r.test(nome);}))return "e";if(NAT_R.some(function(r){return r.test(nome);}))return "r";return "d";}
+var NAT_COR={d:"#1dd1a1",e:"#6d48d6",r:"#9aa8a3"};
+var NAT_LBL={d:"Demanda real",e:"Estratégico",r:"Rotina"};
+function cliNome(nome){var i=(nome||"").indexOf(" - ");return i>0?nome.slice(0,i).trim():"Sem cliente / interno";}
+function filterCli(){
+  var el=document.getElementById("cliq"); var q=(el?el.value:"").toLowerCase();
+  document.querySelectorAll(".cli-acc").forEach(function(det){
+    var cname=(det.getAttribute("data-cname")||"").toLowerCase();
+    var anyName=!q||cname.indexOf(q)!==-1, hits=0;
+    det.querySelectorAll(".cli-task").forEach(function(t){
+      var show=anyName||(t.getAttribute("data-txt")||"").toLowerCase().indexOf(q)!==-1;
+      t.style.display=show?"":"none"; if(show)hits++;
+    });
+    det.style.display=(anyName||hits>0)?"":"none";
+    if(q&&(anyName||hits>0)) det.open=true;
+  });
+}
+function cliExpand(v){document.querySelectorAll(".cli-acc").forEach(function(d){d.open=v;});}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function setProcGest(n){procGest=(procGest===n?"":n);render();}
 async function loadProcNotes(ids){
@@ -968,6 +1021,70 @@ function rCS(){
   var lista=listHead+(listRows.length?'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Tarefa</th><th>Gestor</th><th>Status</th><th class="num">Prazo</th></tr></thead><tbody>'+listRows.join("")+'</tbody></table></div>':'<div class="card"><div class="empty">Nenhuma tarefa CS deste gestor.</div></div>');
 
   return intro+hero+porGestor+lista;
+}
+
+function rCli(){
+  var temDados=GESTORES.some(function(g){return DADOS[g.name];});
+  var seen={}, byCli={};
+  GESTORES.forEach(function(g){
+    var d=DADOS[g.name]||{};
+    (d.feito||[]).forEach(function(t){
+      var key=t.id||(t.nome+"|"+t.dueStr);
+      if(seen[key])return; seen[key]=1;
+      var cli=cliNome(t.nome), k=natKind(t.nome);
+      if(!byCli[cli])byCli[cli]={nome:cli,tasks:[],mix:{d:0,e:0,r:0}};
+      byCli[cli].tasks.push({nome:t.nome,resp:g.name.split(" ")[0],dueStr:t.dueStr,k:k});
+      byCli[cli].mix[k]++;
+    });
+  });
+  var clientes=Object.keys(byCli).map(function(c){var o=byCli[c];o.total=o.tasks.length;o.interno=/interno|sem cliente/i.test(c)?1:0;return o;});
+  clientes.sort(function(a,b){return (a.interno-b.interno)||(b.total-a.total)||a.nome.localeCompare(b.nome,"pt");});
+  var total=clientes.reduce(function(s,c){return s+c.total;},0);
+
+  var intro='<div class="card" style="border-left:4px solid #1dd1a1;margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#1dd1a1"></span>Demanda por cliente · '+PL[per]+'</div><div style="font-size:12.5px;color:var(--text2);line-height:1.6">Tudo que a operação concluiu no período, separado por conta e classificado por natureza da tarefa, para enxergar quem consome esforço e onde esse esforço é rotina, não estratégia.</div></div>';
+
+  if(!temDados||total===0){
+    return intro+'<div class="card"><div class="empty">'+(temDados?"Nenhuma tarefa concluída no período.":"Clique em Atualizar Agora para carregar os dados.")+'</div></div>';
+  }
+
+  var contasArr=clientes.filter(function(c){return !c.interno;});
+  var contas=contasArr.length;
+  var media=contas>0?(total/contas):0;
+  var top5=contasArr.slice(0,5).reduce(function(s,c){return s+c.total;},0);
+  var top5pct=total>0?Math.round(top5/total*100):0;
+  var mixT={d:0,e:0,r:0}; clientes.forEach(function(c){mixT.d+=c.mix.d;mixT.e+=c.mix.e;mixT.r+=c.mix.r;});
+
+  var kpis='<div class="cli-kpis">'
+    +'<div class="kpi"><div class="kpi-top" style="background:#1dd1a1"></div><div class="kpi-lbl">Concluídas</div><div class="kpi-val" style="color:#1dd1a1">'+total+'</div><div class="kpi-sub">no período '+PL[per]+'</div></div>'
+    +'<div class="kpi"><div class="kpi-top" style="background:#2b6cb0"></div><div class="kpi-lbl">Contas atendidas</div><div class="kpi-val" style="color:#2b6cb0">'+contas+'</div><div class="kpi-sub">clientes com entrega</div></div>'
+    +'<div class="kpi"><div class="kpi-top" style="background:#6d48d6"></div><div class="kpi-lbl">Média por conta</div><div class="kpi-val" style="color:#6d48d6">'+media.toFixed(1).replace(".",",")+'</div><div class="kpi-sub">tarefas por cliente</div></div>'
+    +'<div class="kpi"><div class="kpi-top" style="background:#ff6d00"></div><div class="kpi-lbl">Top 5 · % do esforço</div><div class="kpi-val" style="color:#ff6d00">'+top5pct+'%</div><div class="kpi-sub">concentração nas 5 maiores</div></div>'
+    +'</div>';
+
+  var mixSeg=["d","e","r"].filter(function(k){return mixT[k]>0;}).map(function(k){return '<i style="flex:'+mixT[k]+';background:'+NAT_COR[k]+'" title="'+NAT_LBL[k]+': '+mixT[k]+'"></i>';}).join("");
+  var mixLeg=["d","e","r"].map(function(k){return '<span class="mixleg-item"><i style="background:'+NAT_COR[k]+'"></i>'+NAT_LBL[k]+' <b>'+mixT[k]+'</b> · '+(total>0?Math.round(mixT[k]/total*100):0)+'%</span>';}).join("");
+  var mixCard='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Natureza do esforço · rotina pode virar automação</div><div class="mixbar">'+mixSeg+'</div><div class="mixlegend">'+mixLeg+'</div></div>';
+
+  var max=clientes[0].total||1;
+  var rankRows=clientes.map(function(c){
+    var seg=["d","e","r"].filter(function(k){return c.mix[k]>0;}).map(function(k){return '<i style="flex:'+c.mix[k]+';background:'+NAT_COR[k]+'"></i>';}).join("");
+    return '<div class="cli-rank-row"><span class="cli-rank-nm" title="'+esc(c.nome)+'">'+esc(c.nome)+'</span><span class="cli-rank-track" style="width:'+(c.total/max*100).toFixed(1)+'%">'+seg+'</span><span class="cli-rank-qt">'+c.total+'</span></div>';
+  }).join("");
+  var rankCard='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#1dd1a1"></span>Ranking de consumo · barra pela natureza das tarefas</div>'+rankRows+'</div>';
+
+  var accs=clientes.map(function(c){
+    var chips=["d","e","r"].filter(function(k){return c.mix[k]>0;}).map(function(k){return '<span class="cli-chip" style="background:'+NAT_COR[k]+'22;color:'+NAT_COR[k]+'">'+c.mix[k]+' '+NAT_LBL[k].toLowerCase()+'</span>';}).join("");
+    var tasks=c.tasks.map(function(t){
+      var i=t.nome.indexOf(" - "); var taskShort=i>0?t.nome.slice(i+3):t.nome;
+      return '<div class="cli-task" data-txt="'+esc(t.nome+" "+t.resp)+'"><span class="cli-tdot" style="background:'+NAT_COR[t.k]+'"></span><span class="cli-tname">'+esc(taskShort)+'</span><span class="cli-tresp">'+esc(t.resp)+'</span><span class="cli-tdate">'+esc(t.dueStr||"")+'</span></div>';
+    }).join("");
+    return '<details class="cli-acc" data-cname="'+esc(c.nome)+'"><summary><span class="cli-name">'+esc(c.nome)+'</span><span class="cli-chips">'+chips+'</span><span class="cli-total">'+c.total+'</span></summary><div class="cli-tasks">'+tasks+'</div></details>';
+  }).join("");
+  var det='<div class="ctit" style="margin-bottom:10px"><span class="cdot" style="background:#2b6cb0"></span>Detalhamento · clique numa conta para abrir a lista</div>'
+    +'<div class="cli-toolbar"><input id="cliq" class="dt-inp" style="min-width:220px;flex:1" type="search" placeholder="Buscar conta ou tarefa…" oninput="filterCli()"><button class="per-btn" onclick="cliExpand(true)">Abrir todas</button><button class="per-btn" onclick="cliExpand(false)">Fechar todas</button></div>'
+    +'<div class="cli-list">'+accs+'</div>';
+
+  return intro+kpis+mixCard+rankCard+det;
 }
 
 async function doRefresh(){

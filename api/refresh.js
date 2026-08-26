@@ -136,6 +136,7 @@ module.exports = async function handler(req, res) {
         tasksDone.forEach(function(task) {
           var tags = (task.tags || []).map(function(t){ return t.name; });
           var taskInfo = {
+            id: task.id,
             nome: task.name,
             tags: tags,
             dueStr: task.date_done ? new Date(parseInt(task.date_done)).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : ''
