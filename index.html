@@ -94,6 +94,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .mixleg-item{font-size:11.5px;color:var(--text2);display:inline-flex;align-items:center;gap:7px}
 .mixleg-item i{width:9px;height:9px;border-radius:50%;display:inline-block}
 .mixleg-item b{font-family:var(--head);font-variant-numeric:tabular-nums}
+.nat-desc-wrap{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.nat-desc{display:flex;gap:10px;align-items:flex-start;font-size:11.5px;color:var(--muted);line-height:1.5}
+.nat-desc b{color:var(--text2);font-weight:700}
+.nat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .cli-rank-row{display:grid;grid-template-columns:170px 1fr 34px;align-items:center;gap:12px;margin-bottom:9px}
 .cli-rank-nm{font-size:12px;color:var(--text2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cli-rank-track{display:flex;height:9px;border-radius:999px;overflow:hidden;background:var(--bg);min-width:2px}
@@ -427,13 +431,18 @@ function updateHeaderTaxa(){
 }
 function render(){updateHeaderTaxa();document.getElementById("content").innerHTML=tab==="geral"?rGeral():tab==="gestor"?rGest():tab==="4dx"?r4dx():tab==="intel"?rIntel():tab==="hist"?rHist():tab==="proc"?rProc():tab==="cs"?rCS():rCli();}
 function csHasTag(t){return (t.tags||[]).some(function(x){return String(x).toLowerCase()==="cs";});}
-// Classificação por natureza da tarefa (rotina / estratégico / demanda real)
-var NAT_R=[/atualizar? p[úu]blico/i,/atualiza[çc][ãa]o de p[úu]blico/i,/reenvio do checklist/i,/envio d[oe] relat[óo]rio/i,/enviar relat[óo]rio completo/i,/envio do relat[óo]rio/i,/envio de relat[óo]rio/i,/checar reuni[ãa]o/i,/verif?icar post/i,/enviar (boleto|pix)/i,/enviar nf/i,/revisar or[çc]amento cliente google/i,/negativa[çc][ãa]o de palavras/i,/subir ofertas/i,/subir youtube/i];
-var NAT_E=[/revis[ãa]o estrat[ée]gica/i,/onboarding/i,/reuni[ãa]o de briefing/i];
-function natKind(nome){nome=nome||"";if(NAT_E.some(function(r){return r.test(nome);}))return "e";if(NAT_R.some(function(r){return r.test(nome);}))return "r";return "d";}
-var NAT_COR={d:"#1dd1a1",e:"#6d48d6",r:"#9aa8a3"};
-var NAT_LBL={d:"Demanda real",e:"Estratégico",r:"Rotina"};
-function cliNome(nome){var i=(nome||"").indexOf(" - ");return i>0?nome.slice(0,i).trim():"Sem cliente / interno";}
+// Natureza da tarefa: Demanda WhatsApp (tag cs) / Estratégico / Rotina
+var NAT_E=[/revis[ãa]o estrat[ée]gica/i,/onboarding/i,/reuni[ãa]o de briefing/i,/planejamento estrat[ée]gico/i,/reuni[ãa]o estrat[ée]gica/i];
+function natKindT(t){if(csHasTag(t))return "d";if(NAT_E.some(function(r){return r.test(t.nome||"");}))return "e";return "r";}
+var NAT_COR={d:"#1dd1a1",e:"#c08a0e",r:"#9aa8a3"};
+var NAT_LBL={d:"Demanda WhatsApp",e:"Estratégico",r:"Rotina"};
+var NAT_DESC={d:"Pedidos que chegam do cliente (tarefas marcadas com a tag cs).",e:"Trabalho de estratégia: revisão estratégica, onboarding, briefing e planejamento.",r:"Execução operacional e repetitiva do dia a dia — candidata a virar automação."};
+// Normalização + apelidos: junta variações do mesmo cliente (acento, maiúscula, emoji, apelido)
+function cliStripEmoji(s){return (s||"").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{2190}-\u{21FF}]/gu,"");}
+function normKey(s){s=cliStripEmoji(s).normalize("NFKD").replace(new RegExp("[\\u0300-\\u036f]","g"),"");return s.toLowerCase().replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();}
+var CLI_ALIAS={"simone freitas":"simone freitas imoveis","churrascaria pampas":"churrascaria pampas gourmet","konnen":"konnen academia","compor":"compor moveis","zen":"zen cozinha oriental","fabio":"fabio queiroz","hoperarios":"hoperarios cervejaria","oliveira e rondelli":"oliveira rondelli","oliveira e rondeli":"oliveira rondelli","casa nobre home center":"casa nobre","casa do arroz supermercado":"casa do arroz","egawa sushi reserva":"egawa sushi","botegare penedo":"botegare"};
+function cliKey(prefix){var k=normKey(prefix);return CLI_ALIAS[k]||k;}
+function cliClean(prefix){return cliStripEmoji(prefix).replace(/\s+/g," ").trim();}
 function filterCli(){
   var el=document.getElementById("cliq"); var q=(el?el.value:"").toLowerCase();
   document.querySelectorAll(".cli-acc").forEach(function(det){
@@ -1025,19 +1034,28 @@ function rCS(){
 
 function rCli(){
   var temDados=GESTORES.some(function(g){return DADOS[g.name];});
-  var seen={}, byCli={};
+  var seen={}, byKey={};
   GESTORES.forEach(function(g){
     var d=DADOS[g.name]||{};
     (d.feito||[]).forEach(function(t){
-      var key=t.id||(t.nome+"|"+t.dueStr);
-      if(seen[key])return; seen[key]=1;
-      var cli=cliNome(t.nome), k=natKind(t.nome);
-      if(!byCli[cli])byCli[cli]={nome:cli,tasks:[],mix:{d:0,e:0,r:0}};
-      byCli[cli].tasks.push({nome:t.nome,resp:g.name.split(" ")[0],dueStr:t.dueStr,k:k});
-      byCli[cli].mix[k]++;
+      var dk=t.id||(t.nome+"|"+t.dueStr);
+      if(seen[dk])return; seen[dk]=1;
+      var i=(t.nome||"").indexOf(" - ");
+      var prefix=i>0?t.nome.slice(0,i).trim():"";
+      var ck=prefix?cliKey(prefix):"__interno__";
+      if(!byKey[ck])byKey[ck]={key:ck,names:{},tasks:[],mix:{d:0,e:0,r:0}};
+      if(prefix){var cn=cliClean(prefix)||prefix;byKey[ck].names[cn]=(byKey[ck].names[cn]||0)+1;}
+      var k=natKindT(t);
+      byKey[ck].tasks.push({nome:t.nome,resp:g.name.split(" ")[0],dueStr:t.dueStr,k:k});
+      byKey[ck].mix[k]++;
     });
   });
-  var clientes=Object.keys(byCli).map(function(c){var o=byCli[c];o.total=o.tasks.length;o.interno=/interno|sem cliente/i.test(c)?1:0;return o;});
+  var clientes=Object.keys(byKey).map(function(ck){
+    var o=byKey[ck];
+    if(ck==="__interno__"){o.nome="Sem cliente / interno";o.interno=1;}
+    else{var best="",bc=-1;for(var nm in o.names){if(o.names[nm]>bc){bc=o.names[nm];best=nm;}}o.nome=best||"(cliente)";o.interno=0;}
+    o.total=o.tasks.length;return o;
+  });
   clientes.sort(function(a,b){return (a.interno-b.interno)||(b.total-a.total)||a.nome.localeCompare(b.nome,"pt");});
   var total=clientes.reduce(function(s,c){return s+c.total;},0);
 
@@ -1063,7 +1081,8 @@ function rCli(){
 
   var mixSeg=["d","e","r"].filter(function(k){return mixT[k]>0;}).map(function(k){return '<i style="flex:'+mixT[k]+';background:'+NAT_COR[k]+'" title="'+NAT_LBL[k]+': '+mixT[k]+'"></i>';}).join("");
   var mixLeg=["d","e","r"].map(function(k){return '<span class="mixleg-item"><i style="background:'+NAT_COR[k]+'"></i>'+NAT_LBL[k]+' <b>'+mixT[k]+'</b> · '+(total>0?Math.round(mixT[k]/total*100):0)+'%</span>';}).join("");
-  var mixCard='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#6d48d6"></span>Natureza do esforço · rotina pode virar automação</div><div class="mixbar">'+mixSeg+'</div><div class="mixlegend">'+mixLeg+'</div></div>';
+  var mixDesc=["d","e","r"].map(function(k){return '<div class="nat-desc"><span class="nat-dot" style="background:'+NAT_COR[k]+'"></span><span><b>'+NAT_LBL[k]+'.</b> '+NAT_DESC[k]+'</span></div>';}).join("");
+  var mixCard='<div class="card" style="margin-bottom:14px"><div class="ctit"><span class="cdot" style="background:#1dd1a1"></span>Natureza do esforço</div><div class="mixbar">'+mixSeg+'</div><div class="mixlegend">'+mixLeg+'</div><div class="nat-desc-wrap">'+mixDesc+'</div></div>';
 
   var max=clientes[0].total||1;
   var rankRows=clientes.map(function(c){
