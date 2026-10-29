@@ -84,7 +84,7 @@ module.exports = async function handler(req, res) {
   // Limitador de concorrência: no máximo MAXC requisições ao ClickUp ao mesmo
   // tempo (evita o pico que dispara o 429 "Rate limit reached"), mesmo com as
   // 6 buscas e a paginação em lote rodando juntas.
-  var MAXC = 6, inFlight = 0, fila = [];
+  var MAXC = 12, inFlight = 0, fila = [];
   function adquirir() {
     return new Promise(function(res) {
       if (inFlight < MAXC) { inFlight++; res(); } else { fila.push(res); }
@@ -95,28 +95,27 @@ module.exports = async function handler(req, res) {
   }
   function espera(ms) { return new Promise(function(res){ setTimeout(res, ms); }); }
 
-  // Busca uma URL respeitando o limitador e com retentativa no 429.
+  // Busca uma URL com no máximo MAXC simultâneas e retentativa no 429.
+  // A vaga é liberada ANTES da espera do 429, pra retentativa não bloquear
+  // as outras requisições.
   async function cuFetch(url) {
-    await adquirir();
-    try {
-      for (var tent = 0; tent < 5; tent++) {
+    for (var tent = 0; tent < 6; tent++) {
+      await adquirir();
+      var status = 0, is429 = false, errtxt = null, data = null;
+      try {
         var r = await fetch(url, { headers: headers });
-        if (r.status === 429) {
-          var ra = parseFloat(r.headers.get('retry-after') || '');
-          var ms = isNaN(ra) ? (700 * (tent + 1)) : Math.min(ra * 1000, 6000);
-          await espera(ms);
-          continue;
-        }
-        if (!r.ok) {
-          var t = ''; try { t = await r.text(); } catch (e) {}
-          throw new Error('ClickUp ' + r.status + (t ? (': ' + t.slice(0, 140)) : ''));
-        }
-        return r.json();
+        status = r.status;
+        if (status === 429) { is429 = true; }
+        else if (!r.ok) { try { errtxt = await r.text(); } catch (e) { errtxt = ''; } }
+        else { data = await r.json(); }
+      } finally {
+        liberar();
       }
-      throw new Error('ClickUp 429: limite de requisicoes (apos retentativas)');
-    } finally {
-      liberar();
+      if (is429) { await espera(600 * (tent + 1)); continue; }
+      if (errtxt !== null) throw new Error('ClickUp ' + status + (errtxt ? (': ' + errtxt.slice(0, 140)) : ''));
+      return data;
     }
+    throw new Error('ClickUp 429: limite de requisicoes (apos retentativas)');
   }
 
   // Percorre todas as páginas de UMA busca, em lotes; o limitador acima mantém
