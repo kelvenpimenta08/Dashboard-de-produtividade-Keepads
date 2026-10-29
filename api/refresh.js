@@ -81,22 +81,31 @@ module.exports = async function handler(req, res) {
     else if (tipo==='feito') resultado[nome].totalFeito++;
   }
 
-  // Percorre todas as páginas de UMA busca. Várias dessas rodam em paralelo
-  // (Promise.all), então o tempo total é o da busca mais lenta, não a soma.
+  // Percorre todas as páginas de UMA busca, puxando várias páginas de uma vez
+  // (em lotes). Como as 6 buscas também rodam em paralelo, períodos pesados
+  // (mês/ano, com muitas tarefas feitas) deixam de estourar o tempo.
   async function paginar(buildUrl, onTask) {
-    var page = 0;
-    while (page <= 20) {
-      var r = await fetch(buildUrl(page), { headers: headers });
-      if (!r.ok) {
-        var txt = '';
-        try { txt = await r.text(); } catch (e) {}
-        throw new Error('ClickUp ' + r.status + (txt ? (': ' + txt.slice(0, 140)) : ''));
+    var BATCH = 5, MAXP = 40;
+    var page = 0, done = false;
+    while (!done && page <= MAXP) {
+      var pages = [];
+      for (var k = 0; k < BATCH && (page + k) <= MAXP; k++) pages.push(page + k);
+      var datas = await Promise.all(pages.map(function(pp) {
+        return fetch(buildUrl(pp), { headers: headers }).then(function(r) {
+          if (!r.ok) {
+            return r.text().catch(function(){ return ''; }).then(function(t) {
+              throw new Error('ClickUp ' + r.status + (t ? (': ' + t.slice(0, 140)) : ''));
+            });
+          }
+          return r.json();
+        });
+      }));
+      for (var i = 0; i < datas.length; i++) {
+        var tasks = (datas[i] && datas[i].tasks) || [];
+        tasks.forEach(onTask);
+        if (tasks.length < 100) { done = true; break; }
       }
-      var d = await r.json();
-      var tasks = d.tasks || [];
-      tasks.forEach(onTask);
-      if (tasks.length < 100) break;
-      page++;
+      page += pages.length;
     }
   }
 
