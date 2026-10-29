@@ -81,25 +81,53 @@ module.exports = async function handler(req, res) {
     else if (tipo==='feito') resultado[nome].totalFeito++;
   }
 
-  // Percorre todas as páginas de UMA busca, puxando várias páginas de uma vez
-  // (em lotes). Como as 6 buscas também rodam em paralelo, períodos pesados
-  // (mês/ano, com muitas tarefas feitas) deixam de estourar o tempo.
+  // Limitador de concorrência: no máximo MAXC requisições ao ClickUp ao mesmo
+  // tempo (evita o pico que dispara o 429 "Rate limit reached"), mesmo com as
+  // 6 buscas e a paginação em lote rodando juntas.
+  var MAXC = 6, inFlight = 0, fila = [];
+  function adquirir() {
+    return new Promise(function(res) {
+      if (inFlight < MAXC) { inFlight++; res(); } else { fila.push(res); }
+    });
+  }
+  function liberar() {
+    if (fila.length) { var w = fila.shift(); w(); } else { inFlight--; }
+  }
+  function espera(ms) { return new Promise(function(res){ setTimeout(res, ms); }); }
+
+  // Busca uma URL respeitando o limitador e com retentativa no 429.
+  async function cuFetch(url) {
+    await adquirir();
+    try {
+      for (var tent = 0; tent < 5; tent++) {
+        var r = await fetch(url, { headers: headers });
+        if (r.status === 429) {
+          var ra = parseFloat(r.headers.get('retry-after') || '');
+          var ms = isNaN(ra) ? (700 * (tent + 1)) : Math.min(ra * 1000, 6000);
+          await espera(ms);
+          continue;
+        }
+        if (!r.ok) {
+          var t = ''; try { t = await r.text(); } catch (e) {}
+          throw new Error('ClickUp ' + r.status + (t ? (': ' + t.slice(0, 140)) : ''));
+        }
+        return r.json();
+      }
+      throw new Error('ClickUp 429: limite de requisicoes (apos retentativas)');
+    } finally {
+      liberar();
+    }
+  }
+
+  // Percorre todas as páginas de UMA busca, em lotes; o limitador acima mantém
+  // o total de requisições simultâneas sob controle.
   async function paginar(buildUrl, onTask) {
-    var BATCH = 5, MAXP = 40;
+    var BATCH = 5, MAXP = 60;
     var page = 0, done = false;
     while (!done && page <= MAXP) {
       var pages = [];
       for (var k = 0; k < BATCH && (page + k) <= MAXP; k++) pages.push(page + k);
-      var datas = await Promise.all(pages.map(function(pp) {
-        return fetch(buildUrl(pp), { headers: headers }).then(function(r) {
-          if (!r.ok) {
-            return r.text().catch(function(){ return ''; }).then(function(t) {
-              throw new Error('ClickUp ' + r.status + (t ? (': ' + t.slice(0, 140)) : ''));
-            });
-          }
-          return r.json();
-        });
-      }));
+      var datas = await Promise.all(pages.map(function(pp) { return cuFetch(buildUrl(pp)); }));
       for (var i = 0; i < datas.length; i++) {
         var tasks = (datas[i] && datas[i].tasks) || [];
         tasks.forEach(onTask);
