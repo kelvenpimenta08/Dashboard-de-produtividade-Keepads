@@ -81,77 +81,78 @@ module.exports = async function handler(req, res) {
     else if (tipo==='feito') resultado[nome].totalFeito++;
   }
 
+  // Percorre todas as páginas de UMA busca. Várias dessas rodam em paralelo
+  // (Promise.all), então o tempo total é o da busca mais lenta, não a soma.
+  async function paginar(buildUrl, onTask) {
+    var page = 0;
+    while (page <= 20) {
+      var r = await fetch(buildUrl(page), { headers: headers });
+      if (!r.ok) {
+        var txt = '';
+        try { txt = await r.text(); } catch (e) {}
+        throw new Error('ClickUp ' + r.status + (txt ? (': ' + txt.slice(0, 140)) : ''));
+      }
+      var d = await r.json();
+      var tasks = d.tasks || [];
+      tasks.forEach(onTask);
+      if (tasks.length < 100) break;
+      page++;
+    }
+  }
+
+  function onPendente(task) {
+    var status = task.status && task.status.status ? task.status.status.toLowerCase() : '';
+    if (status === 'feito') return;
+    if (!task.due_date) return;
+
+    var due = parseInt(task.due_date);
+    var tags = (task.tags || []).map(function(t){ return t.name; });
+    var diasAtraso = Math.floor((hojeMs - due) / 86400000);
+    var taskInfo = {
+      id: task.id,
+      nome: task.name,
+      tags: tags,
+      dueStr: new Date(due).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),
+      diasAtraso: diasAtraso,
+      url: task.url || ''
+    };
+
+    var tipo = due < hojeMs ? 'atrasado' : due < amanhaMs ? 'venceHoje' : 'noPrazo';
+
+    (task.assignees || []).forEach(function(a) {
+      var nome = mapAssignee(a);
+      if (nome) addTask(nome, taskInfo, tipo);
+    });
+  }
+
+  function onFeito(task) {
+    var tags = (task.tags || []).map(function(t){ return t.name; });
+    var taskInfo = {
+      id: task.id,
+      nome: task.name,
+      tags: tags,
+      dueStr: task.date_done ? new Date(parseInt(task.date_done)).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : ''
+    };
+    (task.assignees || []).forEach(function(a) {
+      var nome = mapAssignee(a);
+      if (nome) addTask(nome, taskInfo, 'feito');
+    });
+  }
+
   try {
-    for (var li = 0; li < LISTAS.length; li++) {
-      var listId = LISTAS[li];
-      var page = 0;
-      var hasMore = true;
-      while (hasMore) {
-        var url = 'https://api.clickup.com/api/v2/list/' + listId + '/task?include_closed=false&page=' + page + '&limit=100';
-        var r = await fetch(url, { headers: headers });
-        var d = await r.json();
-        var tasks = d.tasks || [];
+    var jobs = [];
+    LISTAS.forEach(function(listId) {
+      // Pendentes (tarefas abertas com prazo)
+      jobs.push(paginar(function(p) {
+        return 'https://api.clickup.com/api/v2/list/' + listId + '/task?include_closed=false&page=' + p + '&limit=100';
+      }, onPendente));
+      // Feitas no período
+      jobs.push(paginar(function(p) {
+        return 'https://api.clickup.com/api/v2/list/' + listId + '/task?statuses[]=feito&include_closed=true&date_done_gt=' + range.from + '&date_done_lt=' + range.to + '&page=' + p + '&limit=100';
+      }, onFeito));
+    });
 
-        tasks.forEach(function(task) {
-          var status = task.status && task.status.status ? task.status.status.toLowerCase() : '';
-          if (status === 'feito') return;
-          if (!task.due_date) return;
-
-          var due = parseInt(task.due_date);
-          var tags = (task.tags || []).map(function(t){ return t.name; });
-          var diasAtraso = Math.floor((hojeMs - due) / 86400000);
-          var taskInfo = {
-            id: task.id,
-            nome: task.name,
-            tags: tags,
-            dueStr: new Date(due).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),
-            diasAtraso: diasAtraso,
-            url: task.url || ''
-          };
-
-          var tipo = due < hojeMs ? 'atrasado' : due < amanhaMs ? 'venceHoje' : 'noPrazo';
-
-          (task.assignees || []).forEach(function(a) {
-            var nome = mapAssignee(a);
-            if (nome) addTask(nome, taskInfo, tipo);
-          });
-        });
-
-        hasMore = tasks.length === 100;
-        page++;
-        if (page > 20) break;
-      }
-    }
-
-    for (var lj = 0; lj < LISTAS.length; lj++) {
-      var listIdDone = LISTAS[lj];
-      var pageDone = 0;
-      var hasMoreDone = true;
-      while (hasMoreDone) {
-        var urlDone = 'https://api.clickup.com/api/v2/list/' + listIdDone + '/task?statuses[]=feito&include_closed=true&date_done_gt=' + range.from + '&date_done_lt=' + range.to + '&page=' + pageDone + '&limit=100';
-        var rDone = await fetch(urlDone, { headers: headers });
-        var dDone = await rDone.json();
-        var tasksDone = dDone.tasks || [];
-
-        tasksDone.forEach(function(task) {
-          var tags = (task.tags || []).map(function(t){ return t.name; });
-          var taskInfo = {
-            id: task.id,
-            nome: task.name,
-            tags: tags,
-            dueStr: task.date_done ? new Date(parseInt(task.date_done)).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) : ''
-          };
-          (task.assignees || []).forEach(function(a) {
-            var nome = mapAssignee(a);
-            if (nome) addTask(nome, taskInfo, 'feito');
-          });
-        });
-
-        hasMoreDone = tasksDone.length === 100;
-        pageDone++;
-        if (pageDone > 20) break;
-      }
-    }
+    await Promise.all(jobs);
 
     return res.status(200).json({ gestores: resultado });
 
